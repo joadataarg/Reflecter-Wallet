@@ -2,27 +2,21 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 
 export default function HomePage() {
   const router = useRouter();
-  const supabase = createClient();
+  const { user, loading } = useFirebaseAuth();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session) {
+    if (!loading) {
+      if (user) {
         router.push('/dashboard');
       } else {
         router.push('/login');
       }
-    };
-
-    checkAuth();
-  }, [router, supabase]);
+    }
+  }, [user, loading, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">

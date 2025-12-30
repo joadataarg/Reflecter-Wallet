@@ -1,219 +1,134 @@
 'use client';
 
-import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { signIn, signUp, loading, error, user } = useFirebaseAuth();
   const router = useRouter();
-  const supabase = createClient();
+
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setEmail('');
-        setPassword('');
-        alert('¡Verifica tu correo electrónico para confirmar el registro!');
-        setIsSignUp(false);
-      }
+      await signUp(email, password);
+      alert('¡Cuenta creada! Ya puedes iniciar sesión.');
+      setIsSignUp(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
+      // Error handled by hook
     }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        // Esperar a que la sesión se establezca en cookies
-        await new Promise(resolve => setTimeout(resolve, 600));
-        const { data } = await supabase.auth.getSession();
-        if (data.session?.user) {
-          window.location.assign('/dashboard');
-        } else {
-          router.replace('/dashboard');
-        }
-      }
+      await signIn(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
+      // Error handled by hook
     }
   };
 
   const handleOAuthSignIn = async (provider: 'github' | 'google') => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        setError(error.message);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
-    }
+    alert('OAuth no implementado aún para Firebase en este paso.');
   };
 
   const handleSubmit = isSignUp ? handleSignUp : handleSignIn;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-600 to-purple-600 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-xl">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Vesu Hooks</h1>
-          <h2 className="mt-2 text-gray-600">
-            {isSignUp ? 'Crea tu cuenta' : 'Inicia sesión'}
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+            {isSignUp ? 'Crear cuenta' : 'Iniciar sesión'}
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Vesu Hooks + ChipiPay (Firebase Auth)
+          </p>
         </div>
 
-        <form className="space-y-6" method="post" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+        {error && (
+          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="-space-y-px rounded-md shadow-sm">
+            <div>
+              <input
+                type="email"
+                required
+                className="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                placeholder="Correo electrónico"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
-          )}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Correo electrónico
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
+            <div>
+              <input
+                type="password"
+                required
+                className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete={isSignUp ? 'new-password' : 'current-password'}
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+            <button
+              type="submit"
               disabled={loading}
-            />
+              className="group relative flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
+            >
+              {loading ? 'Cargando...' : isSignUp ? 'Registrarse' : 'Entrar'}
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading
-              ? isSignUp
-                ? 'Registrando...'
-                : 'Iniciando sesión...'
-              : isSignUp
-                ? 'Registrarse'
-                : 'Iniciar sesión'}
-          </button>
         </form>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+        <div className="space-y-3">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-gray-50 px-2 text-gray-500">O continuar con</span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">O continúa con</span>
-          </div>
-        </div>
 
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => handleOAuthSignIn('github')}
-            disabled={loading}
-            className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            GitHub
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOAuthSignIn('google')}
-            disabled={loading}
-            className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            Google
-          </button>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => handleOAuthSignIn('github')}
+              className="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
+            >
+              GitHub
+            </button>
+            <button
+              onClick={() => handleOAuthSignIn('google')}
+              className="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
+            >
+              Google
+            </button>
+          </div>
         </div>
 
         <div className="text-center text-sm">
-          {isSignUp ? (
-            <p className="text-gray-600">
-              ¿Ya tienes cuenta?{' '}
-              <button
-                type="button"
-                onClick={() => setIsSignUp(false)}
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Inicia sesión
-              </button>
-            </p>
-          ) : (
-            <p className="text-gray-600">
-              ¿No tienes cuenta?{' '}
-              <button
-                type="button"
-                onClick={() => setIsSignUp(true)}
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Regístrate
-              </button>
-            </p>
-          )}
+          <button
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
+            {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+          </button>
         </div>
       </div>
     </div>

@@ -1,43 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import CreateWallet from '@/app/components/CreateWallet';
-import type { User } from '@supabase/supabase-js';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, signOut } = useFirebaseAuth();
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session?.user) {
-          router.push('/login');
-        } else {
-          setUser(session.user);
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router, supabase.auth]);
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await signOut();
       router.push('/login');
     } catch (error) {
       console.error('Sign out failed:', error);
@@ -56,7 +36,7 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return null; // El router.push redirecciona
+    return null;
   }
 
   return (
@@ -85,12 +65,12 @@ export default function DashboardPage() {
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-600">ID de usuario</dt>
-                <dd className="text-sm text-gray-900">{user.id}</dd>
+                <dd className="text-sm text-gray-900">{user.uid}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-600">Fecha de creación</dt>
+                <dt className="text-sm font-medium text-gray-600">Último acceso</dt>
                 <dd className="text-sm text-gray-900">
-                  {user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES') : 'N/A'}
+                  {user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString('es-ES') : 'N/A'}
                 </dd>
               </div>
             </dl>
@@ -102,8 +82,8 @@ export default function DashboardPage() {
         <div className="mt-6 rounded-lg bg-white p-6 shadow">
           <h2 className="text-xl font-semibold text-gray-900">Próximos pasos</h2>
           <ul className="mt-4 list-inside list-disc space-y-2 text-sm text-gray-600">
-            <li>✅ Autenticación con Supabase completada</li>
-            <li>✅ JWT asimétricos configurados</li>
+            <li>✅ Autenticación con Firebase completada</li>
+            <li>✅ Integración con Google JWKS</li>
             <li>✅ ChipiProvider integrado</li>
             <li>⏳ Crear una billetera ChipiPay (arriba)</li>
             <li>⏳ Conectar con Vesu para depósitos en vTokens</li>
