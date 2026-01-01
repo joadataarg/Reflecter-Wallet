@@ -90,7 +90,7 @@ La aplicación oculta el PIN al usuario y deriva automáticamente la clave de en
 - Variable opcional: `NEXT_PUBLIC_ENCRYPT_SALT` para personalizar el salt público usado en la derivación.
 - Si no se define, se usa `vesu_default_salt`.
 
-Esta estrategia busca simplicidad de UX. Para entornos con mayores requisitos de seguridad, considera habilitar un PIN/biometría.
+Esta estrategia busca simplicidad de UX. Para entornos con mayores requisitos de seguridad, considera habilitar un PIN/biometría. 
 
 ### Red y Entorno (Mainnet vs Sepolia)
 

@@ -7,7 +7,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:kill": "bash scripts/kill-ports.sh",
+    "dev:reset": "bash scripts/reset-dev.sh",
+    "dev:reset:full": "bash scripts/reset-dev.sh --full",
+    "dev:check": "node scripts/check-env.js",
+    "dev:logs": "bash scripts/logs.sh"
   },
   "dependencies": {
     "@chipi-stack/nextjs": "latest",

@@ -1,53 +1,43 @@
+'use client';
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Wallet } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useNetwork } from '@/lib/hooks/useNetwork';
 
 interface HeaderProps {
   onOpenWallet: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
-  const location = useLocation();
+  const pathname = usePathname();
+  const { network } = useNetwork();
   
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/10">
       <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-12">
-          <Link to="/" className="text-xl font-bold tracking-tighter hover:opacity-80 transition-opacity">
-            OPENTHEDOORZ
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-8">
-            <Link 
-              to="/" 
-              className={`text-xs uppercase tracking-[0.2em] transition-colors ${location.pathname === '/' ? 'text-white font-bold' : 'text-zinc-500 hover:text-white'}`}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/docs" 
-              className={`text-xs uppercase tracking-[0.2em] transition-colors ${location.pathname === '/docs' ? 'text-white font-bold' : 'text-zinc-500 hover:text-white'}`}
-            >
-              Docs
-            </Link>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-bold text-xs">
+            OTD
           </div>
+          <Link href="/" className="text-sm font-bold tracking-tight hover:opacity-80 transition-opacity">
+            OPEN THE DOORZ
+          </Link>
+          <span className={`px-2 py-0.5 border text-[8px] font-bold uppercase tracking-widest ${
+            network === 'MAINNET' 
+              ? 'border-emerald-500/50 text-emerald-500 bg-emerald-500/10' 
+              : 'border-amber-500/50 text-amber-500 bg-amber-500/10'
+          }`}>
+            {network}
+          </span>
         </div>
         
         <div className="flex items-center gap-4">
-          <a 
-            href="https://starknet.io" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="hidden lg:flex items-center gap-1 text-[10px] uppercase tracking-widest text-zinc-500 hover:text-white transition-colors mr-4"
-          >
-            Starknet <ArrowUpRight size={12} />
-          </a>
           <button 
             onClick={onOpenWallet}
-            className="px-6 py-2 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all flex items-center gap-2"
+            className="px-6 py-2 bg-white text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all"
           >
-            <Wallet size={14} /> Access
+            WALLET
           </button>
         </div>
       </nav>

@@ -19,7 +19,7 @@ type WalletInfo = {
 export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: WalletInfo, encryptKey: string }) {
     const { user, getToken } = useFirebaseAuth();
     const { network } = useNetwork();
-    const { approve, deposit, withdraw, isLoading: txLoading, error: txError, txHash } = useVesuTransaction();
+    const { approve, deposit, withdraw, isLoading: txLoading, error: txError } = useVesuTransaction();
     const { positions, loading: dataLoading, refetch } = useVesuPosition(walletInfo?.publicKey);
 
     const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
@@ -373,12 +373,6 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
                         {txError && !status && (
                             <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
                                 <p className="text-sm text-red-700">{JSON.stringify(txError)}</p>
-                            </div>
-                        )}
-
-                        {txHash && !status && (
-                            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-md">
-                                <p className="text-sm text-green-700 break-all">Hash: {txHash}</p>
                             </div>
                         )}
 
