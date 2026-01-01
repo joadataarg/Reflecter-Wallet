@@ -17,3 +17,4 @@ pkill -f "next-server" 2>/dev/null && echo "❌ Procesos Next.js terminados"
 pkill -f "npm run dev" 2>/dev/null
 
 echo "✅ Todos los puertos liberados"
+idad 

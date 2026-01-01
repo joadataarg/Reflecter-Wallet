@@ -23,9 +23,28 @@ import { useNetwork } from '@/lib/hooks/useNetwork';
 import WalletManager from '@/app/components/WalletManager';
 import VesuLending from '@/app/components/VesuLending';
 import NetworkSelector from '@/app/components/NetworkSelector';
+import { TokenBalanceDisplay } from '@/app/components/TokenBalanceDisplay';
 
 type AuthView = 'login' | 'register';
 type WalletView = 'assets' | 'lending' | 'storage' | 'staging' | 'send' | 'receive' | 'settings';
+
+// Token Icon Component with fallback
+const TokenIcon: React.FC<{ src: string; alt: string; fallback: string; size?: string }> = ({ src, alt, fallback, size = 'w-6 h-6' }) => {
+  const [imgError, setImgError] = React.useState(false);
+  
+  if (imgError) {
+    return <span className="text-white font-bold text-sm">{fallback}</span>;
+  }
+  
+  return (
+    <img 
+      src={src}
+      alt={alt}
+      className={size}
+      onError={() => setImgError(true)}
+    />
+  );
+};
 
 export type WalletSession = {
   publicKey: string;
@@ -47,11 +66,20 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
   const [walletView, setWalletView] = useState<WalletView>('assets');
   const [isLoading, setIsLoading] = useState(false);
   const [walletSession, setWalletSession] = useState<WalletSession | null>(null);
+  const [selectedToken, setSelectedToken] = useState<'ETH' | 'STRK' | 'USDC'>('ETH');
+  const [isTokenDropdownOpen, setIsTokenDropdownOpen] = useState(false);
 
   // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  // Token data
+  const tokenData = {
+    ETH: { name: 'ETHEREUM', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png', fallback: 'Ξ' },
+    STRK: { name: 'STARKNET', icon: 'https://www.starknet.io/assets/starknet-logo.svg', fallback: 'S' },
+    USDC: { name: 'USD COIN', icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png', fallback: '$' }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -226,13 +254,34 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                     {/* Fila 1: TOTAL VALUE + Address */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Total Value</div>
-                      <div className="text-[10px] text-zinc-400 font-mono">0X0471...052A</div>
+                      <div className="text-[10px] text-zinc-400 font-mono">
+                        {wallet?.publicKey 
+                          ? `${wallet.publicKey.slice(0, 6)}...${wallet.publicKey.slice(-4)}`
+                          : '0X0471...052A'
+                        }
+                      </div>
                     </div>
                     {/* Fila 2: Balance + Porcentaje */}
                     <div className="flex items-center justify-between">
-                      <div className="text-4xl font-bold text-white">$5,352.60</div>
-                      <div className="text-xs text-emerald-500">+2.4%</div>
+                      <div className="text-4xl font-bold text-white">-</div>
+                      <div className="text-xs text-zinc-500">-</div>
                     </div>
+                  </div>
+
+                  {/* View Address Activity Button */}
+                  <div className="p-4 border-b border-white/10">
+                    <button
+                      onClick={() => {
+                        if (wallet?.publicKey) {
+                          window.open(`https://starkscan.co/contract/${wallet.publicKey}`, '_blank');
+                        }
+                      }}
+                      disabled={!wallet?.publicKey}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-white/5 transition-all text-white text-xs uppercase tracking-widest font-bold"
+                    >
+                      <ExternalLink size={14} />
+                      View Address Activity
+                    </button>
                   </div>
 
                   {/* Send / Receive Buttons */}
@@ -293,63 +342,66 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                         <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              <img 
-                                src="https://cryptologos.cc/logos/ethereum-eth-logo.png" 
-                                alt="ETH" 
-                                className="w-6 h-6"
-                                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.textContent = '\u039E'; }}
+                              <TokenIcon 
+                                src="https://cryptologos.cc/logos/ethereum-eth-logo.png"
+                                alt="ETH"
+                                fallback="Ξ"
                               />
                             </div>
                             <div>
                               <div className="text-sm font-bold text-white">Ethereum</div>
-                              <div className="text-xs text-zinc-400">12450 ETH</div>
+                              <div className="text-xs text-zinc-400">
+                                <TokenBalanceDisplay token="ETH" walletPublicKey={wallet?.publicKey} /> ETH
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-bold text-white">$4,210.50</div>
-                            <div className="text-xs text-emerald-500">+1.2%</div>
+                            <div className="text-sm font-bold text-white">-</div>
+                            <div className="text-xs text-zinc-500">-</div>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              <img 
-                                src="https://www.starknet.io/assets/starknet-logo.svg" 
-                                alt="STRK" 
-                                className="w-6 h-6"
-                                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.textContent = 'S'; }}
+                              <TokenIcon 
+                                src="https://www.starknet.io/assets/starknet-logo.svg"
+                                alt="STRK"
+                                fallback="S"
                               />
                             </div>
                             <div>
                               <div className="text-sm font-bold text-white">Starknet</div>
-                              <div className="text-xs text-zinc-400">520.00 STRK</div>
+                              <div className="text-xs text-zinc-400">
+                                <TokenBalanceDisplay token="STRK" walletPublicKey={wallet?.publicKey} /> STRK
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-bold text-white">$1,040.00</div>
-                            <div className="text-xs text-emerald-500">+1.2%</div>
+                            <div className="text-sm font-bold text-white">-</div>
+                            <div className="text-xs text-zinc-500">-</div>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              <img 
-                                src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" 
-                                alt="USDC" 
-                                className="w-6 h-6"
-                                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.textContent = '$'; }}
+                              <TokenIcon 
+                                src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+                                alt="USDC"
+                                fallback="$"
                               />
                             </div>
                             <div>
                               <div className="text-sm font-bold text-white">USD Coin</div>
-                              <div className="text-xs text-zinc-400">102.10 USDC</div>
+                              <div className="text-xs text-zinc-400">
+                                <TokenBalanceDisplay token="USDC" walletPublicKey={wallet?.publicKey} /> USDC
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-bold text-white">$102.10</div>
-                            <div className="text-xs text-emerald-500">+1.2%</div>
+                            <div className="text-sm font-bold text-white">-</div>
+                            <div className="text-xs text-zinc-500">-</div>
                           </div>
                         </div>
                       </div>
@@ -413,22 +465,66 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                   <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Send Assets</h2>
 
                   <div className="space-y-4">
-                    <div>
+                    <div className="relative">
                       <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold mb-2 block">Token</label>
-                      <div className="p-4 bg-white/5 border border-white/10 flex items-center justify-between">
+                      
+                      {/* Dropdown Button - Vista Compacta */}
+                      <button
+                        onClick={() => setIsTokenDropdownOpen(!isTokenDropdownOpen)}
+                        className="w-full p-4 bg-white/5 border border-white/10 text-white text-sm hover:border-white transition-colors flex items-center justify-between"
+                      >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                            <img 
-                              src="https://cryptologos.cc/logos/ethereum-eth-logo.png" 
-                              alt="ETH" 
-                              className="w-5 h-5"
-                              onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<span class="text-white font-bold text-xs">\u039E</span>'; }}
+                          <div className="w-6 h-6 flex items-center justify-center">
+                            <TokenIcon 
+                              src={tokenData[selectedToken].icon}
+                              alt={selectedToken}
+                              fallback={tokenData[selectedToken].fallback}
+                              size="w-6 h-6"
                             />
                           </div>
-                          <span className="text-sm font-bold text-white">ETH</span>
+                          <span className="font-bold">{selectedToken}</span>
                         </div>
-                        <span className="text-xs text-zinc-400">Balance: 1.2450</span>
-                      </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-zinc-400">
+                            BALANCE: <TokenBalanceDisplay token={selectedToken} walletPublicKey={wallet?.publicKey} />
+                          </span>
+                          <ChevronLeft size={16} className={`transition-transform ${isTokenDropdownOpen ? '-rotate-90' : 'rotate-90'}`} />
+                        </div>
+                      </button>
+
+                      {/* Dropdown Menu - Vista Expandida */}
+                      {isTokenDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-white/10 z-50">
+                          {(['ETH', 'STRK', 'USDC'] as const).map((token) => (
+                            <button
+                              key={token}
+                              onClick={() => {
+                                setSelectedToken(token);
+                                setIsTokenDropdownOpen(false);
+                              }}
+                              className="w-full p-4 hover:bg-white/5 transition-colors flex items-center justify-between border-b border-white/5 last:border-b-0"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-6 h-6 flex items-center justify-center">
+                                  <TokenIcon 
+                                    src={tokenData[token].icon}
+                                    alt={token}
+                                    fallback={tokenData[token].fallback}
+                                    size="w-6 h-6"
+                                  />
+                                </div>
+                                <div className="text-left">
+                                  <div className="text-sm font-bold text-white">{token}</div>
+                                  <div className="text-xs text-zinc-500">{tokenData[token].name}</div>
+                                </div>
+                              </div>
+                              <span className="text-sm text-zinc-400">
+                                <TokenBalanceDisplay token={token} walletPublicKey={wallet?.publicKey} />
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -499,14 +595,14 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                     <div className="w-full mb-4">
                       <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-2 text-center">Your Starknet Address</div>
                       <div className="p-3 bg-white/5 border border-white/10 text-xs text-white break-all text-center font-mono">
-                        0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a
+                        {wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a'}
                       </div>
                     </div>
 
                     {/* Botón de Copiado Rápido */}
                     <button 
                       onClick={() => {
-                        navigator.clipboard.writeText('0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a');
+                        navigator.clipboard.writeText(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a');
                       }}
                       className="w-full py-3 mb-3 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all flex items-center justify-center gap-2"
                     >
