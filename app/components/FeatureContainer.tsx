@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { Sparkles } from 'lucide-react';
 
 type FeatureContainerProps = {
     children: ReactNode;
@@ -12,31 +13,32 @@ type FeatureContainerProps = {
 export default function FeatureContainer({ children, isActive, title, description }: FeatureContainerProps) {
     if (!isActive) {
         return (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-white to-gray-50 rounded-3xl border border-gray-200 shadow-sm relative overflow-hidden group">
-                {/* Decorative Background Elements */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-50 rounded-full opacity-50 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="border border-white/10 bg-black rounded-xl shadow-[0_0_100px_rgba(255,255,255,0.05)] p-12 min-h-[500px] flex items-center justify-center relative overflow-hidden group">
+                {/* Decorative Background Glow */}
+                <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/5 rounded-full blur-[100px] group-hover:bg-white/10 transition-colors duration-700"></div>
 
-                <div className="relative z-10 max-w-lg">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm mb-8 inline-block transform group-hover:-translate-y-2 transition-transform duration-300">
-                        <svg className="w-16 h-16 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
+                <div className="relative z-10 max-w-lg text-center">
+                    {/* Icon */}
+                    <div className="mb-8 flex justify-center">
+                        <div className="p-4 bg-white/5 border border-white/10 rounded-lg group-hover:bg-white/10 transition-all duration-300">
+                            <Sparkles size={32} className="text-white" />
+                        </div>
                     </div>
 
-                    <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">
-                        Bienvenido al Futuro DeFi
+                    {/* Title */}
+                    <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter mb-4 text-white">
+                        Conecta tu Billetera
                     </h2>
-                    <p className="text-gray-500 text-lg mb-8 leading-relaxed">
-                        Gestiona tus activos, realiza préstamos y ahorra sin fricción.
-                        Conecta tu billetera en el panel derecho para desbloquear el ecosistema.
+
+                    {/* Description */}
+                    <p className="text-zinc-400 text-lg mb-8 leading-relaxed font-light">
+                        Usa el panel de la derecha para crear o restaurar tu wallet y desbloquear acceso a Vesu, ChipiPay y más.
                     </p>
 
-                    <div className="flex justify-center">
-                        <button className="px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl border border-indigo-100 shadow-md flex items-center hover:shadow-lg transition-shadow">
-                            <span className="mr-2 text-xl">👉</span>
-                            Configura tu Billetera a la derecha para empezar
-                        </button>
+                    {/* Arrow Indicator */}
+                    <div className="flex items-center justify-center gap-2 text-white font-bold uppercase tracking-widest text-sm">
+                        <span className="text-2xl animate-bounce">→</span>
+                        <span>Panel derecha</span>
                     </div>
                 </div>
             </div>
@@ -44,9 +46,8 @@ export default function FeatureContainer({ children, isActive, title, descriptio
     }
 
     return (
-        <div className="h-full w-full">
-            {/* Placeholder for future specific header logic */}
-            <div className="h-full bg-transparent rounded-3xl transition-all duration-500">
+        <div className="w-full">
+            <div className="border border-white/10 bg-black rounded-xl shadow-[0_0_100px_rgba(255,255,255,0.05)] p-8 transition-all duration-500">
                 {children}
             </div>
         </div>

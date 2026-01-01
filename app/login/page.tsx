@@ -40,67 +40,95 @@ export default function LoginPage() {
   const handleSubmit = isSignUp ? handleSignUp : handleSignIn;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-black px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            {isSignUp ? 'Crear cuenta' : 'Iniciar sesión'}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Vesu Hooks + ChipiPay (Firebase Auth)
-          </p>
+        {/* Logo */}
+        <div className="text-center">
+          <div className="w-12 h-12 bg-white text-black flex items-center justify-center font-bold text-lg rounded mx-auto mb-4">OTD</div>
+          <h1 className="text-4xl font-extrabold tracking-tighter text-white mb-2">OPENTHEDOORZ</h1>
+          <p className="text-sm text-zinc-400 uppercase tracking-widest font-bold">Firebase Auth</p>
         </div>
 
-        {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+        {/* Form Container */}
+        <div className="border border-white/10 bg-black rounded-xl p-8 shadow-[0_0_100px_rgba(255,255,255,0.05)]">
+          <h2 className="text-center text-2xl font-bold tracking-tight text-white mb-2">
+            {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
+          </h2>
+          <p className="text-center text-sm text-zinc-400 uppercase tracking-widest font-bold mb-8">
+            Accede a tu ecosistema Web3
+          </p>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="-space-y-px rounded-md shadow-sm">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-sm font-semibold">
+              {error}
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
             <div>
+              <label htmlFor="email" className="block text-xs font-bold text-white uppercase tracking-widest mb-2">
+                Email
+              </label>
               <input
+                id="email"
                 type="email"
-                required
-                className="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                placeholder="Correo electrónico"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:bg-white/10 focus:border-white/20 focus:outline-none transition-all text-sm"
+                placeholder="tu@email.com"
               />
             </div>
+
+            {/* Password */}
             <div>
+              <label htmlFor="password" className="block text-xs font-bold text-white uppercase tracking-widest mb-2">
+                Contraseña
+              </label>
               <input
+                id="password"
                 type="password"
-                required
-                className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:bg-white/10 focus:border-white/20 focus:outline-none transition-all text-sm"
+                placeholder="••••••••"
               />
             </div>
-          </div>
 
-          <div>
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="group relative flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
+              className="w-full mt-6 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors uppercase tracking-widest text-sm"
             >
-              {loading ? 'Cargando...' : isSignUp ? 'Registrarse' : 'Entrar'}
+              {loading ? 'Procesando...' : isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
+            </button>
+          </form>
+
+          {/* Toggle Auth Mode */}
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+              }}
+              className="text-sm text-zinc-400 hover:text-white transition-colors uppercase tracking-widest font-bold"
+            >
+              {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}{' '}
+              <span className="text-white underline">{isSignUp ? 'Inicia sesión' : 'Regístrate'}</span>
             </button>
           </div>
-        </form>
+        </div>
 
-        {/* Social login removido por ahora: enfocarse en Email/Password */}
-
-        <div className="text-center text-sm">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
-          </button>
+        {/* Footer Info */}
+        <div className="text-center">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold">
+            Asegurado por Firebase & ChipiPay
+          </p>
         </div>
       </div>
     </div>

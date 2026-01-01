@@ -6,15 +6,18 @@ import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import { useFetchWallet } from '@/lib/hooks/useFetchWallet';
 import { useNetwork } from '@/lib/hooks/useNetwork.tsx';
 import WalletManager, { WalletSession } from '@/app/components/WalletManager';
-import FeatureContainer from '@/app/components/FeatureContainer';
 import VesuLending from '@/app/components/VesuLending';
 import NetworkSelector from '@/app/components/NetworkSelector';
+import Header from '@/app/components/Header';
+import WalletPopup from '@/app/components/WalletPopup';
+import Footer from '@/app/components/Footer';
 
 export default function DashboardPage() {
   const { user, loading, signOut } = useFirebaseAuth();
   const { network } = useNetwork();
   const router = useRouter();
   const [walletSession, setWalletSession] = useState<WalletSession | null>(null);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -33,113 +36,112 @@ export default function DashboardPage() {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-black">
         <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto"></div>
-          <p className="text-gray-600 font-medium">Cargando ecosistema...</p>
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent mx-auto"></div>
+          <p className="text-zinc-400 font-medium uppercase tracking-widest text-sm">Cargando...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 flex flex-col">
-      {/* Navbar Minimalista */}
-      <nav className="bg-white border-b border-gray-200 z-10">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold">V</div>
-              <span className="text-xl font-bold text-gray-900 tracking-tight">Vesu<span className="text-indigo-600">App</span></span>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-bold text-gray-900">{user.email}</p>
-                <div className="flex items-center justify-end space-x-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-xs text-green-600 font-medium">Conectado</span>
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black pb-16">
+      {/* Header del Prototipo */}
+      <Header onOpenWallet={() => setIsWalletOpen(true)} />
+
+      {/* Main Content */}
+      <main className="pt-20 pb-20 px-6 max-w-7xl mx-auto">
+        {/* Welcome Section */}
+        <div className="mb-12">
+          <div className="inline-block px-3 py-1 border border-white/20 text-[10px] uppercase tracking-[0.3em] text-zinc-300 mb-4">
+            Usuario Conectado: {user.email}
+          </div>
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter mb-4 leading-[0.9]">
+            <span className="text-white">
+              BIENVENIDO AL<br />ECOSISTEMA WEB3
+            </span>
+          </h1>
+          <p className="text-xl text-zinc-300 max-w-2xl font-light leading-relaxed">
+            Gestiona tu wallet, accede a Vesu para lending, y ejecuta transacciones gasless con ChipiPay desde una única interfaz.
+          </p>
+        </div>
+
+        {/* Grid Layout */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Left/Center: Main Feature Area */}
+          <div className="lg:col-span-2">
+            {!walletSession ? (
+              <div className="border border-white/10 bg-black p-12 rounded-xl shadow-[0_0_100px_rgba(255,255,255,0.05)] min-h-[500px] flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-zinc-400 text-sm uppercase tracking-widest mb-2">Paso 1</p>
+                  <p className="text-white font-bold text-lg mb-4">Conecta tu Wallet</p>
+                  <button 
+                    onClick={() => setIsWalletOpen(true)}
+                    className="px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-zinc-100 transition-colors uppercase tracking-widest text-sm"
+                  >
+                    Abrir Wallet
+                  </button>
                 </div>
               </div>
-              <div className="h-8 w-px bg-gray-200 mx-2"></div>
-              <button
-                onClick={handleSignOut}
-                className="text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
-              >
-                Salir
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Grid Layout */}
-      <main className="flex-grow max-w-[1600px] mx-auto w-full p-4 sm:p-6 lg:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-
-          {/* LEFT SIDE: Feature Context (Main Interaction Area) */}
-          <div className="lg:col-span-8 flex flex-col h-full">
-            <FeatureContainer isActive={!!walletSession}>
-              {walletSession && (
-                <div className="h-full animate-fade-in-up">
-                  {/* In the future, this VesuLending would be just one of many tabs */}
-                  <VesuLending
-                    walletInfo={{
-                      publicKey: walletSession.publicKey,
-                      walletId: walletSession.walletId
-                    }}
-                    encryptKey={walletSession.encryptKey}
-                  />
-                </div>
-              )}
-            </FeatureContainer>
+            ) : (
+              <div className="border border-white/10 bg-black rounded-xl shadow-[0_0_100px_rgba(255,255,255,0.05)] p-6">
+                <VesuLending
+                  walletInfo={{
+                    publicKey: walletSession.publicKey,
+                    walletId: walletSession.walletId
+                  }}
+                  encryptKey={walletSession.encryptKey}
+                />
+              </div>
+            )}
           </div>
 
-          {/* RIGHT SIDE: Wallet Module (Always Visible/Accessible) */}
-          <div className="lg:col-span-4 flex flex-col lg:h-[calc(100vh-140px)] lg:sticky lg:top-24 space-y-4">
-            
+          {/* Right: Quick Access Panel */}
+          <div className="space-y-6">
             {/* Network Selector */}
             <NetworkSelector />
 
-            <div className="bg-white p-1 rounded-2xl shadow-sm border border-gray-200 flex-grow">
-              <div className="h-full overflow-y-auto custom-scrollbar p-2">
-                <div className="mb-6 px-2">
-                  <h2 className="text-lg font-bold text-gray-800">Billetera Digital</h2>
-                  <p className="text-xs text-gray-400 font-medium">Gestión de identidad y llaves</p>
+            {/* Quick Wallet Status */}
+            <div className="border border-white/10 bg-black rounded-xl shadow-[0_0_100px_rgba(255,255,255,0.05)] p-4">
+              <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-4">Estado del Sistema</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Red</span>
+                  <span className={`text-[10px] font-mono font-bold px-2 py-1 rounded uppercase tracking-widest ${
+                    network === 'MAINNET' 
+                      ? 'text-green-400 border border-green-400/30 bg-green-400/10' 
+                      : 'text-orange-400 border border-orange-400/30 bg-orange-400/10'
+                  }`}>
+                    {network}
+                  </span>
                 </div>
-                <WalletManager
-                  walletSession={walletSession}
-                  onSessionChange={setWalletSession}
-                />
-
-                {/* System Status in Sidebar Footer */}
-                <div className="mt-12 pt-6 border-t border-gray-100">
-                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Estado de la Red</h4>
-                  <div className="space-y-2 px-2">
-                    <div className="flex justify-between text-xs items-center">
-                      <span className="text-gray-500">Network</span>
-                      <span className={`font-mono font-bold px-2 py-0.5 rounded ${
-                        network === 'MAINNET' 
-                          ? 'text-green-600 bg-green-50' 
-                          : 'text-orange-600 bg-orange-50'
-                      }`}>
-                        {network}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs items-center">
-                      <span className="text-gray-500">Provider</span>
-                      <span className="text-green-600 font-medium flex items-center">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
-                        ChipiPay
-                      </span>
-                    </div>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Usuario</span>
+                  <span className="text-[10px] text-green-400 font-medium flex items-center gap-1.5 uppercase tracking-widest">
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                    Activo
+                  </span>
+                </div>
+                <div className="pt-3 border-t border-white/10">
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-lg border border-white/10 hover:border-white/20 transition-all uppercase tracking-widest"
+                  >
+                    Cerrar Sesión
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
       </main>
+
+      {/* Wallet Popup - Componente del Prototipo */}
+      <WalletPopup isOpen={isWalletOpen} onClose={() => setIsWalletOpen(false)} />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

@@ -8,6 +8,7 @@ export type NetworkType = 'SEPOLIA' | 'MAINNET';
 type NetworkContextType = {
   network: NetworkType;
   setNetwork: (network: NetworkType) => void;
+  toggleNetwork: () => void;
   isMainnet: boolean;
   isSepolia: boolean;
 };
@@ -32,9 +33,15 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     window.location.reload();
   };
 
+  const toggleNetwork = () => {
+    const newNetwork = network === 'MAINNET' ? 'SEPOLIA' : 'MAINNET';
+    setNetwork(newNetwork);
+  };
+
   const value = {
     network,
     setNetwork,
+    toggleNetwork,
     isMainnet: network === 'MAINNET',
     isSepolia: network === 'SEPOLIA',
   };

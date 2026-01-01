@@ -29,7 +29,7 @@ export type VesuTxParams = {
 };
 
 export function useVesuTransaction() {
-    const { callAsync, isLoading, error, callData } = useCallAnyContract();
+    const { callAnyContractAsync, isLoading, error } = useCallAnyContract();
 
     const approve = useCallback(async (
         params: VesuTxParams,
@@ -44,15 +44,20 @@ export function useVesuTransaction() {
         // Cairo 0/1 style often uses [low, high] for u256
         const calldata = [spenderAddress, u.low, u.high];
 
-        return await callAsync({
-            encryptKey: params.encryptKey,
-            wallet: params.walletData, // Assuming SDK can take the raw wallet object
+        return await callAnyContractAsync({
+            params: {
+                encryptKey: params.encryptKey,
+                wallet: params.walletData,
+                contractAddress: tokenAddress,
+                calls: [{
+                    contractAddress: tokenAddress,
+                    entrypoint: 'approve',
+                    calldata,
+                }],
+            },
             bearerToken: params.bearerToken,
-            contractAddress: tokenAddress,
-            entrypoint: 'approve',
-            calldata,
         });
-    }, [callAsync]);
+    }, [callAnyContractAsync]);
 
     const deposit = useCallback(async (
         params: VesuTxParams,
@@ -65,15 +70,20 @@ export function useVesuTransaction() {
         // deposit(assets: u256, receiver: ContractAddress)
         const calldata = [u.low, u.high, params.userAddress];
 
-        return await callAsync({
-            encryptKey: params.encryptKey,
-            wallet: params.walletData,
+        return await callAnyContractAsync({
+            params: {
+                encryptKey: params.encryptKey,
+                wallet: params.walletData,
+                contractAddress: vTokenAddress,
+                calls: [{
+                    contractAddress: vTokenAddress,
+                    entrypoint: 'deposit',
+                    calldata,
+                }],
+            },
             bearerToken: params.bearerToken,
-            contractAddress: vTokenAddress,
-            entrypoint: 'deposit',
-            calldata,
         });
-    }, [callAsync]);
+    }, [callAnyContractAsync]);
 
     const withdraw = useCallback(async (
         params: VesuTxParams,
@@ -86,15 +96,20 @@ export function useVesuTransaction() {
         // withdraw(assets: u256, receiver: ContractAddress, owner: ContractAddress)
         const calldata = [u.low, u.high, params.userAddress, params.userAddress];
 
-        return await callAsync({
-            encryptKey: params.encryptKey,
-            wallet: params.walletData,
+        return await callAnyContractAsync({
+            params: {
+                encryptKey: params.encryptKey,
+                wallet: params.walletData,
+                contractAddress: vTokenAddress,
+                calls: [{
+                    contractAddress: vTokenAddress,
+                    entrypoint: 'withdraw',
+                    calldata,
+                }],
+            },
             bearerToken: params.bearerToken,
-            contractAddress: vTokenAddress,
-            entrypoint: 'withdraw',
-            calldata,
         });
-    }, [callAsync]);
+    }, [callAnyContractAsync]);
 
     return {
         approve,
@@ -102,6 +117,5 @@ export function useVesuTransaction() {
         withdraw,
         isLoading,
         error,
-        txHash: callData
     };
 }
