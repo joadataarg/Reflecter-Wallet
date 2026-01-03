@@ -31,6 +31,7 @@ import { TokenBalanceDisplay } from '@/app/components/TokenBalanceDisplay';
 import { useTokenPrices } from '@/lib/hooks/useTokenPrices';
 import { useTokenBalance } from '@/lib/hooks/useTokenBalance';
 import { useSendAssets } from '@/lib/hooks/useSendAssets';
+import { formatStarknetAddress } from '@/lib/utils/formatAddress';
 
 type AuthView = 'login' | 'register';
 type WalletView = 'assets' | 'lending' | 'storage' | 'staging' | 'trading' | 'send' | 'receive' | 'settings';
@@ -896,7 +897,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                         </div>
                       )}
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a'}`}
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${formatStarknetAddress(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a')}`}
                         alt="Wallet QR Code"
                         className={`w-[180px] h-[180px] transition-opacity duration-300 ${isQrLoading ? 'opacity-0' : 'opacity-100'}`}
                         onLoad={() => setIsQrLoading(false)}
@@ -906,14 +907,14 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                     <div className="w-full mb-4">
                       <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-2 text-center">Your Starknet Address</div>
                       <div className="p-3 bg-white/5 border border-white/10 text-xs text-white break-all text-center font-mono">
-                        {wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a'}
+                        {formatStarknetAddress(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a')}
                       </div>
                     </div>
 
                     {/* Botón de Copiado Rápido */}
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a');
+                        navigator.clipboard.writeText(formatStarknetAddress(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a'));
                       }}
                       className="w-full py-3 mb-3 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all flex items-center justify-center gap-2"
                     >
