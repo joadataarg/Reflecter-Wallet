@@ -30,6 +30,7 @@ import NetworkSelector from '@/app/components/NetworkSelector';
 import { TokenBalanceDisplay } from '@/app/components/TokenBalanceDisplay';
 import { useTokenPrices } from '@/lib/hooks/useTokenPrices';
 import { useTokenBalance } from '@/lib/hooks/useTokenBalance';
+import { useSendAssets } from '@/lib/hooks/useSendAssets';
 
 type AuthView = 'login' | 'register';
 type WalletView = 'assets' | 'lending' | 'storage' | 'staging' | 'trading' | 'send' | 'receive' | 'settings';
@@ -78,6 +79,9 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
   const [isValueVisible, setIsValueVisible] = useState(true);
   const [sendAmount, setSendAmount] = useState('');
   const [sendPercent, setSendPercent] = useState(0);
+  const [sendToAddress, setSendToAddress] = useState('');
+  const [sendAddressError, setSendAddressError] = useState('');
+  const [sendAmountError, setSendAmountError] = useState('');
 
   // Profile states
   const [profile, setProfile] = useState({
@@ -100,6 +104,9 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
   const { balance: ethBalance } = useTokenBalance('ETH', wallet?.publicKey);
   const { balance: strkBalance } = useTokenBalance('STRK', wallet?.publicKey);
   const { balance: usdcBalance } = useTokenBalance('USDC', wallet?.publicKey);
+
+  // Send Assets Hook
+  const sendAssetsHook = useSendAssets(selectedToken);
 
   // Totals Calculation
   const ethValue = parseFloat(ethBalance || '0') * prices.ETH;
@@ -155,7 +162,48 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
   const handleInitSend = () => {
     setSendAmount('');
     setSendPercent(0);
+    setSendToAddress('');
+    setSendAddressError('');
+    setSendAmountError('');
     setWalletView('send');
+  };
+
+  const handleConfirmSend = async () => {
+    // Reset errors
+    setSendAddressError('');
+    setSendAmountError('');
+
+    // Validate amount
+    const amountValidation = sendAssetsHook.validateAmount(sendAmount);
+    if (!amountValidation.isValid) {
+      setSendAmountError(amountValidation.error || 'Invalid amount');
+      return;
+    }
+
+    // Validate address
+    const addressValidation = sendAssetsHook.validateAddress(sendToAddress);
+    if (!addressValidation.isValid) {
+      setSendAddressError(addressValidation.error || 'Invalid address');
+      return;
+    }
+
+    // Send transaction
+    const result = await sendAssetsHook.sendTransaction(sendToAddress, sendAmount);
+
+    if (result.success) {
+      // Reset form and show success
+      setSendAmount('');
+      setSendPercent(0);
+      setSendToAddress('');
+      // In a real app, show toast notification
+      console.log('Transaction sent:', result.txHash);
+      // Return to assets view after short delay
+      setTimeout(() => {
+        setWalletView('assets');
+      }, 2000);
+    } else {
+      setSendAmountError(result.error || 'Transaction failed');
+    }
   };
 
   if (!isOpen) return null;
@@ -704,9 +752,22 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                       <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold mb-2 block">To Address</label>
                       <input
                         type="text"
+                        value={sendToAddress}
+                        onChange={(e) => {
+                          setSendToAddress(e.target.value);
+                          setSendAddressError('');
+                        }}
                         placeholder="0x..."
-                        className="w-full bg-white/5 border border-white/10 p-4 text-sm focus:border-white focus:outline-none transition-colors placeholder:text-zinc-500 text-white"
+                        className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white ${
+                          sendAddressError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
+                        }`}
                       />
+                      {sendAddressError && (
+                        <div className="flex items-center gap-1 mt-2 text-xs text-red-500">
+                          <Info size={12} />
+                          {sendAddressError}
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -720,21 +781,33 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                         <input
                           type="text"
                           value={sendAmount}
-                          onChange={(e) => setSendAmount(e.target.value)}
+                          onChange={(e) => {
+                            setSendAmount(e.target.value);
+                            setSendAmountError('');
+                          }}
                           placeholder="0.00"
-                          className="w-full bg-white/5 border border-white/10 p-4 text-sm focus:border-white focus:outline-none transition-colors placeholder:text-zinc-500 text-white"
+                          className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white ${
+                            sendAmountError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
+                          }`}
                         />
                         <button
                           onClick={() => {
                             const balance = selectedToken === 'ETH' ? ethBalance : selectedToken === 'STRK' ? strkBalance : usdcBalance;
                             setSendAmount(balance);
                             setSendPercent(100);
+                            setSendAmountError('');
                           }}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold uppercase tracking-widest text-white hover:text-zinc-300"
                         >
                           Max
                         </button>
                       </div>
+                      {sendAmountError && (
+                        <div className="flex items-center gap-1 mb-4 text-xs text-red-500">
+                          <Info size={12} />
+                          {sendAmountError}
+                        </div>
+                      )}
 
                       {/* Percentage Slider */}
                       <div className="space-y-3 mb-6">
@@ -758,14 +831,45 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                             const balance = parseFloat(balanceStr || '0');
                             const amount = (balance * (percent / 100)).toFixed(selectedToken === 'USDC' ? 6 : 18);
                             setSendAmount(amount.replace(/\.?0+$/, ''));
+                            setSendAmountError('');
                           }}
                           className="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white"
                         />
                       </div>
+
+                      {/* Fee Estimation Display */}
+                      {sendAmount && !sendAmountError && (
+                        <div className="bg-white/5 border border-white/10 p-3 rounded mb-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-zinc-400 uppercase font-bold">Estimated Fee</span>
+                            <span className="text-sm font-bold text-white">
+                              {sendAssetsHook.calculateEstimatedFee(sendAmount).toFixed(selectedToken === 'USDC' ? 6 : 8)} {selectedToken}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-zinc-400 uppercase font-bold">Total Cost</span>
+                            <span className="text-sm font-bold text-white">
+                              {sendAssetsHook.calculateTotalCost(sendAmount).toFixed(selectedToken === 'USDC' ? 6 : 8)} {selectedToken}
+                            </span>
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
+                            <span className="text-xs text-zinc-500">Min Amount</span>
+                            <span className="text-xs text-zinc-400">{sendAssetsHook.minAmount} {selectedToken}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <button className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all">
-                      Confirm Send
+                    <button
+                      onClick={handleConfirmSend}
+                      disabled={sendAssetsHook.isLoading || !sendAmount || !sendToAddress}
+                      className={`w-full py-4 font-bold uppercase tracking-widest text-xs transition-all ${
+                        sendAssetsHook.isLoading || !sendAmount || !sendToAddress
+                          ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                          : 'bg-white text-black hover:bg-zinc-200'
+                      }`}
+                    >
+                      {sendAssetsHook.isLoading ? 'Sending...' : 'Confirm Send'}
                     </button>
                   </div>
                 </div>

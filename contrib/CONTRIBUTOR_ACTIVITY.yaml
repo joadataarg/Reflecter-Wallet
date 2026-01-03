@@ -9,11 +9,11 @@ current_active_work:
     estimated_completion: "2026-02-15"
     feature_flags: ["MULTI_WALLET_SUPPORT"]
 
-  - contributor: "@lending-team"
-    branch: "feat/ui-add-lending-clean"
-    files: ["app/components/VesuExplorer.tsx", "app/components/VesuBorrowAction.tsx", "app/components/VesuEarnAction.tsx", "app/components/VesuMultiplyAction.tsx", "lib/hooks/useTokenPrices.ts"]
-    estimated_completion: "2026-01-05"
-    feature_flags: ["ADVANCED_LENDING_UI"]
+  - contributor: "@send-assets-team"
+    branch: "feat/send-assets"
+    files: ["app/components/WalletPopup.tsx", "lib/hooks/useSendAssets.ts"]
+    estimated_completion: "2026-01-04"
+    feature_flags: ["SEND_ASSETS"]
 
 completed_recently:
   - contributor: "@contributor-wallet-ui"
@@ -30,8 +30,8 @@ completed_recently:
 
   - contributor: "@lending-team"
     branch: "feat/ui-add-lending-clean"
-    pr_number: "pending"
-    merged_date: "pending"
+    pr_number: "#8"
+    merged_date: "2026-01-03"
     changes: "Added Vesu Explorer with 4 action components (Earn/Borrow/Multiply), useTokenPrices hook, NetworkSelector improvements"
 
 how_to_use:

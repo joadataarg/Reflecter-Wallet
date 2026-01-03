@@ -50,8 +50,16 @@ flags:
     branch: feat/ui-add-lending-clean
     last_updated: 2026-01-03
 
-  # Planned upstream features (for contributor visibility)
   - id: 6
+    name: SEND_ASSETS
+    default: false
+    status: planned
+    description: Complete send functionality with address validation, minimum amounts, estimated fees for all tokens
+    branch: feat/send-assets
+    last_updated: 2026-01-03
+
+  # Planned upstream features (for contributor visibility)
+  - id: 7
     name: LANDING_PAGE_CDN
     default: false
     status: planned
@@ -59,7 +67,7 @@ flags:
     branch: feat/landing-cloudflare
     last_updated: 2026-01-02
 
-  - id: 7
+  - id: 8
     name: NPM_PACKAGE_EXPORT
     default: false
     status: planned
@@ -67,7 +75,7 @@ flags:
     branch: feat/npm-package
     last_updated: 2026-01-02
 
-  - id: 8
+  - id: 9
     name: GITHUB_ACTIONS_PUBLISH
     default: false
     status: planned
@@ -75,7 +83,7 @@ flags:
     branch: feat/cicd
     last_updated: 2026-01-02
 
-  - id: 9
+  - id: 10
     name: DOCKER_SETUP
     default: false
     status: planned
