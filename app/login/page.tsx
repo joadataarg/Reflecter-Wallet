@@ -3,133 +3,70 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
+import WalletPopup from '@/app/components/WalletPopup';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-  const { signIn, signUp, loading, error, user } = useFirebaseAuth();
+  const { user, loading } = useFirebaseAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
+    if (!loading && user) {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, loading, router]);
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await signUp(email, password);
-      alert('¡Cuenta creada! Ya puedes iniciar sesión.');
-      setIsSignUp(false);
-    } catch (err) {
-      // Error handled by hook
-    }
-  };
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await signIn(email, password);
-    } catch (err) {
-      // Error handled by hook
-    }
-  };
-
-  const handleSubmit = isSignUp ? handleSignUp : handleSignIn;
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-black px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        {/* Logo */}
-        <div className="text-center">
-          <div className="w-12 h-12 bg-white text-black flex items-center justify-center font-bold text-lg rounded mx-auto mb-4">OTD</div>
-          <h1 className="text-4xl font-extrabold tracking-tighter text-white mb-2">OPENTHEDOORZ</h1>
-          <p className="text-sm text-zinc-400 uppercase tracking-widest font-bold">Firebase Auth</p>
+  if (loading || user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black p-6 relative overflow-hidden">
+        {/* Decorative background for loading */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.03] blur-[150px] rounded-full animate-pulse" />
         </div>
 
-        {/* Form Container */}
-        <div className="border border-white/10 bg-black rounded-xl p-8 shadow-[0_0_100px_rgba(255,255,255,0.05)]">
-          <h2 className="text-center text-2xl font-bold tracking-tight text-white mb-2">
-            {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
-          </h2>
-          <p className="text-center text-sm text-zinc-400 uppercase tracking-widest font-bold mb-8">
-            Accede a tu ecosistema Web3
-          </p>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-sm font-semibold">
-              {error}
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="relative mb-12">
+            <div className="w-24 h-24 bg-white text-black flex items-center justify-center font-black text-2xl shadow-[0_0_50px_rgba(255,255,255,0.2)] animate-bounce font-mono">
+              OTD
             </div>
-          )}
+            <div className="absolute -inset-4 border border-white/10 animate-[spin_4s_linear_infinite]" />
+            <div className="absolute -inset-8 border border-white/5 animate-[spin_8s_linear_infinite_reverse]" />
+          </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-xs font-bold text-white uppercase tracking-widest mb-2">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:bg-white/10 focus:border-white/20 focus:outline-none transition-all text-sm"
-                placeholder="tu@email.com"
-              />
+          <div className="space-y-4">
+            <h2 className="text-xl font-black uppercase tracking-[0.6em] text-white animate-pulse">
+              Initializing Node
+            </h2>
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-px w-12 bg-zinc-800" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-500">
+                Establishing Secure Link
+              </span>
+              <div className="h-px w-12 bg-zinc-800" />
             </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-xs font-bold text-white uppercase tracking-widest mb-2">
-                Contraseña
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:bg-white/10 focus:border-white/20 focus:outline-none transition-all text-sm"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-6 py-2.5 bg-white text-black font-bold rounded-lg hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors uppercase tracking-widest text-sm"
-            >
-              {loading ? 'Procesando...' : isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
-            </button>
-          </form>
-
-          {/* Toggle Auth Mode */}
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-              }}
-              className="text-sm text-zinc-400 hover:text-white transition-colors uppercase tracking-widest font-bold"
-            >
-              {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}{' '}
-              <span className="text-white underline">{isSignUp ? 'Inicia sesión' : 'Regístrate'}</span>
-            </button>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Footer Info */}
-        <div className="text-center">
-          <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold">
-            Asegurado por Firebase & ChipiPay
-          </p>
-        </div>
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background decoration in sync with the Landing/Wallet style */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.02] blur-[120px] rounded-full" />
+      </div>
+
+      {/* 
+          Re-using the WalletPopup component directly for Login/Register.
+          Since WalletPopup internally handles the !user state by showing the Login/Register forms,
+          we just need to render it here in 'isEmbedded' mode to fit the page aesthetic perfectly.
+      */}
+      <div className="relative z-10 w-full max-w-[400px] h-[600px] border border-white/20 shadow-[0_0_100px_rgba(255,255,255,0.1)]">
+        <WalletPopup
+          isOpen={true}
+          onClose={() => router.push('/')}
+          isEmbedded={true}
+        />
       </div>
     </div>
   );

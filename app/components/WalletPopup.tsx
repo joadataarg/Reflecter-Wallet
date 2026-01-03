@@ -63,9 +63,10 @@ export type WalletSession = {
 interface WalletPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  isEmbedded?: boolean;
 }
 
-const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
+const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded = false }) => {
   const { user, signIn, signUp, signOut } = useFirebaseAuth();
   const { wallet } = useFetchWallet();
   const { network, toggleNetwork } = useNetwork();
@@ -121,15 +122,6 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
     STRK: { name: 'STARKNET', icon: 'https://www.starknet.io/assets/starknet-logo.svg', fallback: 'S' },
     USDC: { name: 'USD COIN', icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png', fallback: '$' }
   };
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [isOpen]);
 
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,23 +203,21 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Backdrop Overlay */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-        onClick={onClose}
-      />
-      
-      {/* Backdrop */}
-      {isOpen && (
+      {/* Backdrop Overlays - only in modal mode */}
+      {!isEmbedded && (
         <div
-          className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+          className={`fixed inset-0 z-[100] bg-black/80 backdrop-blur-2xl transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
           onClick={onClose}
         />
       )}
 
-      {/* Modal */}
+      {/* Modal / Embedded Container */}
       <div
-        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] w-full max-w-[380px] h-[600px] bg-black border border-white/20 shadow-[0_0_100px_rgba(255,255,255,0.1)] flex flex-col transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
+        className={`${isEmbedded
+          ? 'relative w-full h-full border-none shadow-none'
+          : 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] w-full max-w-[380px] h-[600px] border border-white/20 shadow-[0_0_100px_rgba(255,255,255,0.1)] transition-all duration-300'
+          } bg-black flex flex-col ${!isEmbedded && (isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none')
           }`}
       >
         {/* Header */}
@@ -798,9 +788,8 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                           setSendAddressError('');
                         }}
                         placeholder="0x..."
-                        className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white ${
-                          sendAddressError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
-                        }`}
+                        className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white ${sendAddressError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
+                          }`}
                       />
                       {sendAddressError && (
                         <div className="flex items-center gap-1 mt-2 text-xs text-red-500">
@@ -826,9 +815,8 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                             setSendAmountError('');
                           }}
                           placeholder="0.00"
-                          className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white ${
-                            sendAmountError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
-                          }`}
+                          className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white ${sendAmountError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
+                            }`}
                         />
                         <button
                           onClick={() => {
@@ -907,11 +895,10 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                     <button
                       onClick={handleConfirmSend}
                       disabled={sendAssetsHook.isLoading || !sendAmount || !sendToAddress}
-                      className={`w-full py-4 font-bold uppercase tracking-widest text-xs transition-all ${
-                        sendAssetsHook.isLoading || !sendAmount || !sendToAddress
-                          ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                          : 'bg-white text-black hover:bg-zinc-200'
-                      }`}
+                      className={`w-full py-4 font-bold uppercase tracking-widest text-xs transition-all ${sendAssetsHook.isLoading || !sendAmount || !sendToAddress
+                        ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                        : 'bg-white text-black hover:bg-zinc-200'
+                        }`}
                     >
                       {sendAssetsHook.isLoading ? 'Sending...' : 'Confirm Send'}
                     </button>
@@ -1093,17 +1080,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-zinc-950 border-t border-white/10 flex items-center justify-between text-[10px] text-zinc-300 uppercase tracking-widest font-bold shrink-0">
-          <div>Open Source Product from ReflecterLabs.xyz</div>
-          <div>V0.0.1</div>
+        <div className="p-4 bg-zinc-950 border-t border-white/10 flex items-center justify-between text-[10px] text-zinc-500 uppercase tracking-widest font-bold shrink-0">
+          <div>Open The Doorz (OTD) | Starknet SDK</div>
+          <div>v1.0.0</div>
         </div>
       </div>
-
-      {/* Overlay */}
-      <div
-        className={`fixed inset-0 bg-black/80 backdrop-blur-2xl z-[90] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-      />
       <style jsx>{`
         .no-scrollbar::-webkit-scrollbar {
           display: none;
@@ -1119,11 +1100,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.2);
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.4);
         }
       `}</style>
     </>
