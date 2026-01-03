@@ -6,27 +6,33 @@ current_active_work:
   - contributor: "@example-contributor"
     branch: "feat/wallet-connect"
     files: ["app/components/WalletManager.tsx", "lib/hooks/useWalletConnect.ts"]
-    estimated_completion: "2024-02-15"
+    estimated_completion: "2026-02-15"
     feature_flags: ["MULTI_WALLET_SUPPORT"]
 
-  - contributor: "@another-contributor"
-    branch: "feat/lending-ui"
-    files: ["app/components/VesuLending.tsx", "app/dashboard/page.tsx"]
-    estimated_completion: "2024-02-20"
+  - contributor: "@lending-team"
+    branch: "feat/ui-add-lending-clean"
+    files: ["app/components/VesuExplorer.tsx", "app/components/VesuBorrowAction.tsx", "app/components/VesuEarnAction.tsx", "app/components/VesuMultiplyAction.tsx", "lib/hooks/useTokenPrices.ts"]
+    estimated_completion: "2026-01-05"
     feature_flags: ["ADVANCED_LENDING_UI"]
 
 completed_recently:
   - contributor: "@contributor-wallet-ui"
     branch: "feat/ui"
-    pr_number: "#1"
-    merged_date: "2024-02-01"
+    pr_number: "#3"
+    merged_date: "2026-01-02"
     changes: "Fixed WalletPopup dimensions, added QR code, real-time balances from ChipiPay"
 
   - contributor: "@contributor-initial-contrib-docs"
     branch: "feat/initial-contrib-docs"
-    pr_number: "#2"
-    merged_date: "2024-02-05"
-    changes: "Established trunk-based workflow, feature flags, contributor coordination framework"
+    pr_number: "#5"
+    merged_date: "2026-01-02"
+    changes: "Established trunk-based workflow, feature flags, contributor coordination framework, English documentation"
+
+  - contributor: "@lending-team"
+    branch: "feat/ui-add-lending-clean"
+    pr_number: "pending"
+    merged_date: "pending"
+    changes: "Added Vesu Explorer with 4 action components (Earn/Borrow/Multiply), useTokenPrices hook, NetworkSelector improvements"
 
 how_to_use:
   - "Check this board before starting major feature work"

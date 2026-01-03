@@ -45,10 +45,10 @@ flags:
   - id: 5
     name: ADVANCED_LENDING_UI
     default: false
-    status: planned
-    description: Enhanced lending interface (WIP)
-    branch: feat/lending-ui
-    last_updated: 2026-01-02
+    status: active
+    description: Enhanced lending interface with Vesu Explorer, Earn, Borrow, and Multiply actions
+    branch: feat/ui-add-lending-clean
+    last_updated: 2026-01-03
 
   # Planned upstream features (for contributor visibility)
   - id: 6
