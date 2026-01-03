@@ -9,7 +9,7 @@ export default function NetworkSelector() {
   const handleNetworkChange = (newNetwork: NetworkType) => {
     if (newNetwork !== network) {
       const confirmed = window.confirm(
-        `¿Cambiar a ${newNetwork === 'MAINNET' ? 'Mainnet' : 'Sepolia Testnet'}?\n\nLa página se recargará para aplicar los cambios.`
+        `Switch to ${newNetwork === 'MAINNET' ? 'Mainnet' : 'Sepolia Testnet'}?\n\nThe page will reload to apply changes.`
       );
       if (confirmed) {
         setNetwork(newNetwork);
@@ -23,7 +23,7 @@ export default function NetworkSelector() {
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
           <Globe size={14} className="text-white" />
-          <h3 className="text-xs font-bold text-white uppercase tracking-widest">Red Blockchain</h3>
+          <h3 className="text-xs font-bold text-white uppercase tracking-widest">Blockchain Network</h3>
         </div>
         <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Starknet</p>
       </div>
@@ -32,7 +32,7 @@ export default function NetworkSelector() {
       <div className="grid grid-cols-2 gap-2 mb-4">
         {/* Sepolia Testnet (Locked) */}
         <button
-          onClick={() => alert('¡Próximamente!\n\nLa red Sepolia está en desarrollo y estará disponible pronto. Por ahora, solo puedes operar en Mainnet.')}
+          onClick={() => alert('Coming Soon!\n\nSepolia testnet is under development and will be available soon. For now, you can only operate on Mainnet.')}
           className="relative p-3 rounded-lg border border-white/5 bg-white/5 opacity-50 cursor-not-allowed group transition-all duration-200 text-left"
         >
           <div className="absolute top-2 right-2 flex items-center gap-1">
@@ -62,7 +62,7 @@ export default function NetworkSelector() {
             <p className={`text-xs font-bold uppercase tracking-widest ${network === 'MAINNET' ? 'text-green-400' : 'text-white'}`}>
               Mainnet
             </p>
-            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Producción</p>
+            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Production</p>
           </div>
         </button>
       </div>
@@ -74,13 +74,13 @@ export default function NetworkSelector() {
           <p className="text-zinc-400 leading-relaxed uppercase tracking-widest font-bold">
             {network === 'SEPOLIA' ? (
               <>
-                Testnet: Obtén ETH gratis en <a href="https://starknet-faucet.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-zinc-300 underline">
+                Testnet: Get free ETH from <a href="https://starknet-faucet.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-zinc-300 underline">
                   faucets
                 </a>
               </>
             ) : (
               <>
-                ⚠️ Red real. Requiere tokens con valor económico
+                ⚠️ Real network. Requires tokens with economic value
               </>
             )}
           </p>

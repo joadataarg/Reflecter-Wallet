@@ -211,6 +211,20 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
+      {/* Backdrop Overlay */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+        onClick={onClose}
+      />
+      
+      {/* Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+        />
+      )}
+
       {/* Modal */}
       <div
         className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] w-full max-w-[380px] h-[600px] bg-black border border-white/20 shadow-[0_0_100px_rgba(255,255,255,0.1)] flex flex-col transition-all duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
@@ -323,11 +337,25 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                   <div className="p-6 border-b border-white/10">
                     {/* Fila 1: TOTAL VALUE + Network Indicator */}
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Total Value</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Total Value</div>
+                        <button
+                          onClick={() => {
+                            // Force refetch balances - hooks will automatically update
+                            window.location.reload();
+                          }}
+                          className="p-1 text-zinc-500 hover:text-white transition-colors"
+                          title="Refresh balances"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </button>
+                      </div>
                       <button
                         onClick={() => {
                           if (network === 'MAINNET') {
-                            alert('¡Próximamente!\n\nLa red Sepolia está en desarrollo y estará disponible pronto. Por ahora, solo puedes operar en Mainnet.');
+                            alert('Coming Soon!\n\nSepolia network is in development and will be available soon. For now, you can only operate on Mainnet.');
                           } else {
                             toggleNetwork();
                           }
@@ -357,9 +385,20 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                           {isValueVisible ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <button
+                        onClick={() => {
+                          if (wallet?.publicKey) {
+                            const baseUrl = network === 'MAINNET' ? 'https://starkscan.co' : 'https://sepolia.starkscan.co';
+                            window.open(`${baseUrl}/contract/${formatStarknetAddress(wallet.publicKey)}`, '_blank');
+                          }
+                        }}
+                        disabled={!wallet?.publicKey}
+                        className="text-xs text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        title="View on Starkscan"
+                      >
                         {totalValue > 0 ? 'Live' : '0%'}
-                      </div>
+                        <ExternalLink size={10} />
+                      </button>
                     </div>
                   </div>
 
@@ -607,41 +646,41 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                       <div className="p-4 bg-white/5 border border-white/10 space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Nombre *</label>
+                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">First Name *</label>
                             <input
                               type="text"
                               value={profile.firstName}
                               onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                              placeholder="Tu nombre"
+                              placeholder="Your first name"
                               className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Apellido</label>
+                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Last Name</label>
                             <input
                               type="text"
                               value={profile.lastName}
                               onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                              placeholder="Tu apellido"
+                              placeholder="Your last name"
                               className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                             />
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Ciudad</label>
+                          <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">City</label>
                           <input
                             type="text"
                             value={profile.city}
                             onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                            placeholder="Ciudad"
+                            placeholder="City"
                             className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                           />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Provincia</label>
+                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Province</label>
                             <input
                               type="text"
                               value={profile.province}
@@ -794,7 +833,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose }) => {
                         <button
                           onClick={() => {
                             const balance = selectedToken === 'ETH' ? ethBalance : selectedToken === 'STRK' ? strkBalance : usdcBalance;
-                            setSendAmount(balance);
+                            const balanceNum = parseFloat(balance || '0');
+                            // Subtract estimated fee from balance
+                            const estimatedFee = sendAssetsHook.estimatedGasPrice;
+                            const maxAmount = Math.max(0, balanceNum - estimatedFee);
+                            setSendAmount(maxAmount.toFixed(selectedToken === 'USDC' ? 6 : 18).replace(/\.?0+$/, ''));
                             setSendPercent(100);
                             setSendAmountError('');
                           }}
