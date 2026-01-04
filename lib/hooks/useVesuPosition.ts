@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getVesuConfig } from '@/lib/vesu/config';
-
-export type VesuPosition = {
-    asset: string;
-    supplyBalance: string;
-    debtBalance: string;
-    apy: string;
-    walletBalance: string; // This will be fetched separately by VesuLending component
-};
+import { logger } from '../utils/logger';
+import { createSDKError, ErrorCode } from '../utils/errors';
+import { VesuPosition } from '../types';
 
 export function useVesuPosition(userAddress?: string) {
     const [positions, setPositions] = useState<VesuPosition[]>([]);
@@ -21,32 +16,34 @@ export function useVesuPosition(userAddress?: string) {
         setLoading(true);
         setError(null);
         try {
+            logger.debug('Fetching Vesu positions', { userAddress, network: config.network });
+
             const defaults: Record<string, string> = {
                 USDC: '5.4%',
                 ETH: '3.1%',
                 STRK: '2.5%',
             };
 
-            // Only show available tokens (filter out disabled ones)
+            // Only show available tokens
             const availableTokens = Object.entries(config.tokens)
                 .filter(([_, tokenConfig]) => tokenConfig.available !== false)
                 .map(([symbol]) => symbol);
 
-            // Note: walletBalance will be '...' as placeholder
-            // The VesuLending component will fetch individual balances using useTokenBalance
             const entries = availableTokens.map(asset => ({
                 asset,
                 supplyBalance: '0.00', // TODO: Read from Vesu vToken contract
                 debtBalance: '0.00',   // TODO: Read from Vesu debt tracking
                 apy: defaults[asset] || '3.0%',
-                walletBalance: '...', // Placeholder - fetched by parent component
+                walletBalance: '...',
             }));
 
             setPositions(entries);
+            logger.debug('Vesu positions metadata loaded', { count: entries.length });
 
         } catch (err) {
-            console.error(err);
-            setError('Failed to fetch Vesu positions');
+            const sdkError = createSDKError(ErrorCode.DEFI_POSITION_FETCH_FAILED, { userAddress }, err);
+            logger.error('Failed to fetch Vesu positions', { error: sdkError.message });
+            setError(sdkError.message);
         } finally {
             setLoading(false);
         }

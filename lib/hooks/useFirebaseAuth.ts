@@ -10,6 +10,8 @@ import {
     getIdToken
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
+import { logger } from '../utils/logger';
+import { createSDKError, ErrorCode } from '../utils/errors';
 
 export type UseFirebaseAuthReturn = {
     user: User | null;
@@ -30,6 +32,9 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setLoading(false);
+            if (user) {
+                logger.debug('User session active', { uid: user.uid });
+            }
         });
 
         return () => unsubscribe();
@@ -40,10 +45,12 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
             setError(null);
             setLoading(true);
             await createUserWithEmailAndPassword(auth, email, password);
+            logger.audit('User signed up', { email });
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'Sign up failed';
-            setError(message);
-            throw err;
+            const sdkError = createSDKError(ErrorCode.AUTH_FAILED, { email }, err);
+            setError(sdkError.message);
+            logger.error('Sign up failed', { code: sdkError.code });
+            throw sdkError;
         } finally {
             setLoading(false);
         }
@@ -54,10 +61,12 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
             setError(null);
             setLoading(true);
             await signInWithEmailAndPassword(auth, email, password);
+            logger.debug('User signed in', { email });
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'Sign in failed';
-            setError(message);
-            throw err;
+            const sdkError = createSDKError(ErrorCode.AUTH_INVALID_CREDENTIALS, { email }, err);
+            setError(sdkError.message);
+            logger.error('Sign in failed', { email });
+            throw sdkError;
         } finally {
             setLoading(false);
         }
@@ -67,11 +76,14 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
         try {
             setError(null);
             setLoading(true);
+            const uid = auth.currentUser?.uid;
             await firebaseSignOut(auth);
+            logger.audit('User signed out', { uid });
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'Sign out failed';
-            setError(message);
-            throw err;
+            const sdkError = createSDKError(ErrorCode.AUTH_FAILED, {}, err);
+            setError(sdkError.message);
+            logger.error('Sign out failed');
+            throw sdkError;
         } finally {
             setLoading(false);
         }

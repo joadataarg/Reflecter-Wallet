@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import { useCreateWallet } from '@chipi-stack/nextjs';
 import { deriveEncryptKey } from '@/lib/utils/deriveEncryptKey';
+import { logger } from '@/lib/utils/logger';
+import { getErrorMessage } from '@/lib/utils/errors';
 
 /**
- * Componente para crear una billetera de ChipiPay
- * Integra Firebase Auth con ChipiPay para crear billeteras
- * encriptadas y asociadas a usuarios.
+ * Component to create a ChipiPay wallet
+ * Integrates Firebase Auth with ChipiPay for encrypted wallets
  */
 type WalletSuccessData = {
   publicKey: string;
@@ -23,21 +24,21 @@ export default function CreateWallet({ onSuccess }: { onSuccess?: (data: WalletS
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [walletData, setWalletData] = useState<any>(null);
-  const [debugInfo, setDebugInfo] = useState<{ iss?: string; aud?: string; sub?: string } | null>(null);
 
   const handleCreateWallet = async () => {
     try {
       setError('');
       setSuccess('');
       setWalletData(null);
-      setDebugInfo(null);
 
       if (!user) {
         setError('No hay usuario autenticado. Por favor inicia sesión primero.');
         return;
       }
 
-      // Obtener Bearer Token de Firebase
+      logger.audit('Initiating wallet creation', { uid: user.uid });
+
+      // Get Bearer Token from Firebase
       const bearerToken = await getToken();
 
       if (!bearerToken) {
@@ -45,27 +46,11 @@ export default function CreateWallet({ onSuccess }: { onSuccess?: (data: WalletS
         return;
       }
 
-      // DEBUG: Decodificar y mostrar claims del token
-      try {
-        // Simple base64 decode for debug purposes to avoid adding heavy libs if not needed, 
-        // but since we have 'jose' in package.json (from previous view), we could import it. 
-        // Let's use simple JSON parse of the payload part.
-        const [, payload] = bearerToken.split('.');
-        const decoded = JSON.parse(atob(payload));
-        console.log('JWT Debug:', decoded);
-        setDebugInfo({
-          iss: decoded.iss,
-          aud: decoded.aud,
-          sub: decoded.sub
-        });
-      } catch (e) {
-        console.error('Error decoding token for debug:', e);
-      }
-
       // Derivar encryptKey automáticamente desde el UID para UX sin PIN
+      // Este proceso es ahora asíncrono y mucho más seguro (PBKDF2)
       const encryptKey = await deriveEncryptKey(user.uid);
 
-      // Crear billetera con ChipiPay
+      // Create wallet with ChipiPay
       const response = await createWalletAsync({
         params: {
           encryptKey,
@@ -74,8 +59,13 @@ export default function CreateWallet({ onSuccess }: { onSuccess?: (data: WalletS
         bearerToken,
       });
 
-      // Guardar información de la billetera - usar normalizedPublicKey para Starknet
       const starknetAddress = response.wallet.normalizedPublicKey || response.wallet.publicKey;
+
+      logger.audit('Wallet created successfully', {
+        address: starknetAddress,
+        uid: user.uid
+      });
+
       setWalletData({
         publicKey: starknetAddress,
         rawPublicKey: response.wallet.publicKey,
@@ -83,23 +73,20 @@ export default function CreateWallet({ onSuccess }: { onSuccess?: (data: WalletS
         email: user.email,
       });
 
-      // No almacenamos el PIN; se deriva en cada sesión desde el UID
-
       setSuccess(`¡Billetera creada exitosamente! Dirección Starknet: ${starknetAddress}`);
+
       if (onSuccess) {
         onSuccess({
           publicKey: starknetAddress,
-          walletId: response.wallet.publicKey, // Use raw publicKey as ID
+          walletId: response.wallet.publicKey,
           encryptKey
         });
       }
-      // Keep encryptKey for a moment or clear it? If we clear it, parent has it.
-      // setEncryptKey(''); 
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al crear billetera';
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
       setError(errorMessage);
-      console.error('Error creando billetera:', error);
+      logger.error('Failed to create wallet', { error: err });
     }
   };
 
@@ -130,13 +117,6 @@ export default function CreateWallet({ onSuccess }: { onSuccess?: (data: WalletS
                 </div>
               </div>
             </div>
-            {debugInfo && (
-              <div className="mt-3 pt-3 border-t border-red-100 text-xs font-mono text-red-600 bg-red-50/50 p-2 rounded">
-                <p className="font-bold">Debug Info:</p>
-                <p>iss: {debugInfo.iss}</p>
-                <p>aud: {debugInfo.aud}</p>
-              </div>
-            )}
           </div>
         )}
 
@@ -150,6 +130,13 @@ export default function CreateWallet({ onSuccess }: { onSuccess?: (data: WalletS
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {walletData && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 break-all">
+            <p className="text-xs text-gray-500 mb-1 uppercase font-semibold">Tu Dirección</p>
+            <p className="text-sm font-mono text-gray-800">{walletData.publicKey}</p>
           </div>
         )}
 
@@ -183,7 +170,7 @@ export default function CreateWallet({ onSuccess }: { onSuccess?: (data: WalletS
       </div>
 
       <div className="bg-gray-50 px-8 py-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-        <span>🔒 End-to-End Encrypted</span>
+        <span>🔒 PBKDF2 Encrypted</span>
         <span>ChipiPay Secure Core</span>
       </div>
     </div>

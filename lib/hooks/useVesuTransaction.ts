@@ -1,7 +1,11 @@
-import { useCallback, useMemo } from 'react';
-import { useCallAnyContract } from '@chipi-stack/nextjs'; // Corrected import based on package.json
+import { useCallback } from 'react';
+import { useCallAnyContract } from '@chipi-stack/nextjs';
+import { logger } from '../utils/logger';
+import { createSDKError, ErrorCode } from '../utils/errors';
 
-// Helper for BigInt conversion
+/**
+ * Helper for BigInt conversion to u256 for Starknet
+ */
 function toUint256Parts(amount: bigint) {
     const mask = (1n << 128n) - 1n;
     const low = amount & mask;
@@ -9,25 +13,31 @@ function toUint256Parts(amount: bigint) {
     return { low: `0x${low.toString(16)}`, high: `0x${high.toString(16)}` };
 }
 
+/**
+ * Convert human readable amount to base units
+ */
 function toBaseUnits(human: string, decimals: number): bigint {
-    const [i, f = ''] = human.split('.');
-    const frac = (f + '0'.repeat(decimals)).slice(0, decimals);
-    const s = `${i}${frac}`.replace(/^0+/, '') || '0';
-    return BigInt(s);
+    try {
+        const [i, f = ''] = human.split('.');
+        const frac = (f + '0'.repeat(decimals)).slice(0, decimals);
+        const s = `${i}${frac}`.replace(/^0+/, '') || '0';
+        return BigInt(s);
+    } catch (e) {
+        logger.error('Failed to convert to base units', { human, decimals });
+        return 0n;
+    }
 }
 
 export type VesuTxParams = {
     encryptKey: string;
     bearerToken: string;
     userAddress: string;
-    // Wallet is handled internally by Chipi provider if configured, 
-    // OR passed explicitly if the SDK requires it. 
-    // Based on CreateWallet usage, we might not need to pass full wallet object if context handles it?
-    // Checking vesuSponsored.ts, it passed 'wallet'. createWallet returned 'walletData'.
-    // We'll keep the signature compatible with passing the wallet object.
     walletData?: any;
 };
 
+/**
+ * Hook for interacting with Vesu Protocol contracts via ChipiPay
+ */
 export function useVesuTransaction() {
     const { callAnyContractAsync, isLoading, error } = useCallAnyContract();
 
@@ -38,25 +48,31 @@ export function useVesuTransaction() {
         amountHuman: string,
         decimals: number
     ) => {
-        const amountBase = toBaseUnits(amountHuman, decimals);
-        const u = toUint256Parts(amountBase);
+        try {
+            const amountBase = toBaseUnits(amountHuman, decimals);
+            const u = toUint256Parts(amountBase);
+            const calldata = [spenderAddress, u.low, u.high];
 
-        // Cairo 0/1 style often uses [low, high] for u256
-        const calldata = [spenderAddress, u.low, u.high];
+            logger.audit('Initiating token approval', { tokenAddress, spenderAddress, amountHuman });
 
-        return await callAnyContractAsync({
-            params: {
-                encryptKey: params.encryptKey,
-                wallet: params.walletData,
-                contractAddress: tokenAddress,
-                calls: [{
+            return await callAnyContractAsync({
+                params: {
+                    encryptKey: params.encryptKey,
+                    wallet: params.walletData,
                     contractAddress: tokenAddress,
-                    entrypoint: 'approve',
-                    calldata,
-                }],
-            },
-            bearerToken: params.bearerToken,
-        });
+                    calls: [{
+                        contractAddress: tokenAddress,
+                        entrypoint: 'approve',
+                        calldata,
+                    }],
+                },
+                bearerToken: params.bearerToken,
+            });
+        } catch (err) {
+            const sdkError = createSDKError(ErrorCode.DEFI_APPROVAL_FAILED, { tokenAddress }, err);
+            logger.error('Approval failed', { error: sdkError.message });
+            throw sdkError;
+        }
     }, [callAnyContractAsync]);
 
     const deposit = useCallback(async (
@@ -65,24 +81,31 @@ export function useVesuTransaction() {
         amountHuman: string,
         decimals: number
     ) => {
-        const amountBase = toBaseUnits(amountHuman, decimals);
-        const u = toUint256Parts(amountBase);
-        // deposit(assets: u256, receiver: ContractAddress)
-        const calldata = [u.low, u.high, params.userAddress];
+        try {
+            const amountBase = toBaseUnits(amountHuman, decimals);
+            const u = toUint256Parts(amountBase);
+            const calldata = [u.low, u.high, params.userAddress];
 
-        return await callAnyContractAsync({
-            params: {
-                encryptKey: params.encryptKey,
-                wallet: params.walletData,
-                contractAddress: vTokenAddress,
-                calls: [{
+            logger.audit('Initiating Vesu deposit', { vTokenAddress, amountHuman });
+
+            return await callAnyContractAsync({
+                params: {
+                    encryptKey: params.encryptKey,
+                    wallet: params.walletData,
                     contractAddress: vTokenAddress,
-                    entrypoint: 'deposit',
-                    calldata,
-                }],
-            },
-            bearerToken: params.bearerToken,
-        });
+                    calls: [{
+                        contractAddress: vTokenAddress,
+                        entrypoint: 'deposit',
+                        calldata,
+                    }],
+                },
+                bearerToken: params.bearerToken,
+            });
+        } catch (err) {
+            const sdkError = createSDKError(ErrorCode.DEFI_DEPOSIT_FAILED, { vTokenAddress }, err);
+            logger.error('Deposit failed', { error: sdkError.message });
+            throw sdkError;
+        }
     }, [callAnyContractAsync]);
 
     const withdraw = useCallback(async (
@@ -91,24 +114,31 @@ export function useVesuTransaction() {
         amountHuman: string,
         decimals: number
     ) => {
-        const amountBase = toBaseUnits(amountHuman, decimals);
-        const u = toUint256Parts(amountBase);
-        // withdraw(assets: u256, receiver: ContractAddress, owner: ContractAddress)
-        const calldata = [u.low, u.high, params.userAddress, params.userAddress];
+        try {
+            const amountBase = toBaseUnits(amountHuman, decimals);
+            const u = toUint256Parts(amountBase);
+            const calldata = [u.low, u.high, params.userAddress, params.userAddress];
 
-        return await callAnyContractAsync({
-            params: {
-                encryptKey: params.encryptKey,
-                wallet: params.walletData,
-                contractAddress: vTokenAddress,
-                calls: [{
+            logger.audit('Initiating Vesu withdrawal', { vTokenAddress, amountHuman });
+
+            return await callAnyContractAsync({
+                params: {
+                    encryptKey: params.encryptKey,
+                    wallet: params.walletData,
                     contractAddress: vTokenAddress,
-                    entrypoint: 'withdraw',
-                    calldata,
-                }],
-            },
-            bearerToken: params.bearerToken,
-        });
+                    calls: [{
+                        contractAddress: vTokenAddress,
+                        entrypoint: 'withdraw',
+                        calldata,
+                    }],
+                },
+                bearerToken: params.bearerToken,
+            });
+        } catch (err) {
+            const sdkError = createSDKError(ErrorCode.DEFI_WITHDRAW_FAILED, { vTokenAddress }, err);
+            logger.error('Withdrawal failed', { error: sdkError.message });
+            throw sdkError;
+        }
     }, [callAnyContractAsync]);
 
     return {

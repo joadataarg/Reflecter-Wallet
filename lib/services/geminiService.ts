@@ -1,20 +1,36 @@
+/**
+ * Gemini Service (Client-side)
+ * Consumes the server-side API route to protect API keys
+ */
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { logger } from '../utils/logger';
+import { createSDKError, ErrorCode, getErrorMessage } from '../utils/errors';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-export const getWeb3Explanation = async (topic: string) => {
+export const getWeb3Explanation = async (topic: string): Promise<string> => {
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Explain the following Web3/Starknet technical concept in 2 sentences for a developer audience. Topic: ${topic}`,
-      config: {
-        systemInstruction: "You are a senior blockchain engineer specialized in Starknet and ZK-rollups. Keep explanations concise, professional, and technical.",
-      }
+    logger.debug('Fetching AI explanation', { topic });
+
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ topic }),
     });
-    return response.text;
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw createSDKError(ErrorCode.NETWORK_ERROR, {
+        status: response.status,
+        detail: errorData.error
+      });
+    }
+
+    const data = await response.json();
+    return data.text;
   } catch (error) {
-    console.error("Gemini Error:", error);
-    return "Failed to fetch explanation. Please check your connectivity.";
+    const message = getErrorMessage(error);
+    logger.error('Gemini Service failure', { error: message, topic });
+    return "No se pudo obtener la explicación en este momento. Por favor, intenta más tarde.";
   }
 };

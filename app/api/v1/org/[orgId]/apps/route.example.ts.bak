@@ -1,0 +1,232 @@
+// app/api/v1/org/[orgId]/apps/route.ts
+// Ejemplo de implementación para la Fase 2
+
+import { NextRequest, NextResponse } from 'next/server';
+import { validateOrgAccess } from '@/middleware/orgAuth';
+import { getAuth } from 'firebase-admin/auth';
+
+/**
+ * GET /api/v1/org/[orgId]/apps
+ * Listar todas las apps de una organización
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { orgId: string } }
+) {
+  try {
+    const { orgId } = params;
+    const authHeader = request.headers.get('Authorization');
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Missing or invalid Authorization header' },
+        { status: 401 }
+      );
+    }
+    
+    const token = authHeader.substring(7);
+    let userId: string;
+    
+    try {
+      const decodedToken = await getAuth().verifyIdToken(token);
+      userId = decodedToken.uid;
+    } catch (err) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+    
+    // Validar acceso a la organización
+    const authError = await validateOrgAccess(request, orgId, userId);
+    if (authError) return authError;
+    
+    // Obtener apps de la organización
+    // NOTE: En fase 2, reemplazar con llamada real a BD
+    const apps = [
+      {
+        id: 'app_001',
+        organizationId: orgId,
+        name: 'Mi Primera App',
+        slug: 'mi-primera-app',
+        status: 'ACTIVE',
+        environments: {
+          developer: {
+            status: 'DEPLOYED',
+            url: `https://api.otd.com/dev/${orgId}/app_001`,
+            lastDeployment: new Date().toISOString()
+          },
+          production: {
+            status: 'DEPLOYED',
+            url: `https://api.otd.com/prod/${orgId}/app_001`,
+            lastDeployment: new Date().toISOString()
+          }
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+    
+    return NextResponse.json({
+      data: apps,
+      total: apps.length,
+      page: 1,
+      pageSize: 10
+    });
+    
+  } catch (error) {
+    console.error('[GET /api/v1/org/[orgId]/apps]', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/v1/org/[orgId]/apps
+ * Crear una nueva app en la organización
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { orgId: string } }
+) {
+  try {
+    const { orgId } = params;
+    const authHeader = request.headers.get('Authorization');
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Missing or invalid Authorization header' },
+        { status: 401 }
+      );
+    }
+    
+    const token = authHeader.substring(7);
+    let userId: string;
+    
+    try {
+      const decodedToken = await getAuth().verifyIdToken(token);
+      userId = decodedToken.uid;
+    } catch (err) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+    
+    // Validar acceso a la organización
+    const authError = await validateOrgAccess(request, orgId, userId);
+    if (authError) return authError;
+    
+    // Parse request body
+    const body = await request.json();
+    const { name, slug, description } = body;
+    
+    // Validar entrada
+    if (!name || !slug) {
+      return NextResponse.json(
+        { error: 'Missing required fields: name, slug' },
+        { status: 400 }
+      );
+    }
+    
+    // Validar formato de slug
+    const slugRegex = /^[a-z0-9-]+$/;
+    if (!slugRegex.test(slug)) {
+      return NextResponse.json(
+        { error: 'Slug must contain only lowercase letters, numbers, and hyphens' },
+        { status: 400 }
+      );
+    }
+    
+    // Verificar que el slug no existe en esta organización
+    // NOTE: En fase 2, reemplazar con query real a BD
+    const appExists = false;
+    
+    if (appExists) {
+      return NextResponse.json(
+        { error: 'App with this slug already exists in the organization' },
+        { status: 409 }
+      );
+    }
+    
+    // Crear la app
+    // NOTE: En fase 2, implementar lógica de creación en BD
+    const newApp = {
+      id: `app_${Date.now()}`,
+      organizationId: orgId,
+      name,
+      slug,
+      description,
+      status: 'DRAFT',
+      environments: {
+        developer: {
+          id: `env_dev_${Date.now()}`,
+          type: 'developer',
+          credentials: {
+            apiKey: generateApiKey('dev'),
+            apiSecret: generateApiSecret('dev'),
+            webhookSecret: generateWebhookSecret('dev')
+          },
+          endpoints: {
+            baseUrl: `https://api.otd.com/dev/${orgId}/${slug}`
+          },
+          createdAt: new Date().toISOString()
+        },
+        production: {
+          id: `env_prod_${Date.now()}`,
+          type: 'production',
+          credentials: {
+            apiKey: generateApiKey('prod'),
+            apiSecret: generateApiSecret('prod'),
+            webhookSecret: generateWebhookSecret('prod')
+          },
+          endpoints: {
+            baseUrl: `https://api.otd.com/prod/${orgId}/${slug}`
+          },
+          createdAt: new Date().toISOString()
+        }
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    return NextResponse.json(
+      {
+        data: newApp,
+        message: 'App created successfully'
+      },
+      { status: 201 }
+    );
+    
+  } catch (error) {
+    console.error('[POST /api/v1/org/[orgId]/apps]', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper functions (en fase 2, mover a utils)
+function generateApiKey(env: string): string {
+  const prefix = env === 'dev' ? 'otd_dev' : 'otd_prod';
+  const randomPart = Math.random().toString(36).substring(2, 15) +
+                     Math.random().toString(36).substring(2, 15);
+  return `${prefix}_${randomPart}`;
+}
+
+function generateApiSecret(env: string): string {
+  const prefix = env === 'dev' ? 'sk_dev' : 'sk_prod';
+  const randomPart = Math.random().toString(36).substring(2, 15) +
+                     Math.random().toString(36).substring(2, 15);
+  return `${prefix}_${randomPart}`;
+}
+
+function generateWebhookSecret(env: string): string {
+  const prefix = env === 'dev' ? 'whsec_dev' : 'whsec_prod';
+  const randomPart = Math.random().toString(36).substring(2, 15) +
+                     Math.random().toString(36).substring(2, 15);
+  return `${prefix}_${randomPart}`;
+}

@@ -1,3 +1,8 @@
+/**
+ * Global Type Definitions for OpenTheDoorz SDK
+ */
+
+import { ErrorCode } from './utils/errors';
 
 export enum WalletState {
   DISCONNECTED = 'DISCONNECTED',
@@ -6,16 +11,50 @@ export enum WalletState {
   SETTINGS = 'SETTINGS'
 }
 
+export type NetworkType = 'SEPOLIA' | 'MAINNET';
+
 export interface TokenBalance {
   symbol: string;
   name: string;
   balance: string;
-  valueUsd: string;
+  rawBalance: string;
+  valueUsd?: string;
   icon: string;
+  decimals: number;
+}
+
+export interface VesuPosition {
+  asset: string;
+  supplyBalance: string;
+  debtBalance: string;
+  apy: string;
+  walletBalance: string;
 }
 
 export interface UserSession {
   address: string;
   email?: string;
-  network: 'mainnet' | 'sepolia';
+  uid: string;
+  network: NetworkType;
+}
+
+/**
+ * SDK Configuration interface
+ */
+export interface SDKConfig {
+  apiKey: string;
+  network: NetworkType;
+  debug?: boolean;
+}
+
+/**
+ * Common response pattern for SDK operations
+ */
+export interface SDKResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: ErrorCode;
+    message: string;
+  };
 }

@@ -48,7 +48,7 @@ function toUint256Parts(amount: bigint) {
 export const useSendAssets = (token: 'ETH' | 'STRK' | 'USDC') => {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
-  
+
   const { callAnyContractAsync, isLoading } = useCallAnyContract();
   const { getToken, user } = useFirebaseAuth();
   const { wallet } = useFetchWallet();
@@ -191,15 +191,16 @@ export const useSendAssets = (token: 'ETH' | 'STRK' | 'USDC') => {
           },
           bearerToken,
         });
-        
+
         // Extract transaction hash - ChipiPay returns the hash as a string directly
         let hash = null;
         if (typeof result === 'string') {
           hash = result;
         } else if (result && typeof result === 'object') {
-          hash = result.transaction_hash || result.transactionHash || result.hash || result.txHash;
+          const res = result as any;
+          hash = res.transaction_hash || res.transactionHash || res.hash || res.txHash;
         }
-        
+
         if (hash) {
           setTxHash(hash);
           return { success: true, txHash: hash };

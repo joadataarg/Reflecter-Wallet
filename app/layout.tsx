@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ChipiClientProvider } from '@chipi-stack/nextjs';
 import { NetworkProvider } from '@/lib/hooks/useNetwork.tsx';
+import { WalletSessionProvider } from '@/lib/context/WalletSessionContext';
 
 export const metadata: Metadata = {
   title: 'Open The Doorz (OTD) | The Premium Starknet SDK',
@@ -28,7 +29,9 @@ export default function RootLayout({
           alphaUrl={process.env.NEXT_PUBLIC_CHIPI_ALPHA_URL}
         >
           <NetworkProvider>
-            {children}
+            <WalletSessionProvider>
+              {children}
+            </WalletSessionProvider>
           </NetworkProvider>
         </ChipiClientProvider>
       </body>

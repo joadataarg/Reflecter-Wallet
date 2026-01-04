@@ -25,19 +25,18 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
     const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
     const [amount, setAmount] = useState('');
     const config = getVesuConfig();
-    
+
     // Find first available asset for default selection
     const firstAvailableAsset = Object.entries(config.tokens)
         .find(([_, token]) => token.available !== false)?.[0] || 'ETH';
-    
+
     const [selectedAsset, setSelectedAsset] = useState(firstAvailableAsset);
     const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
 
     // Get wallet balance for selected asset using externalUserId (Firebase UID)
     const { balance: walletBalance, isLoading: balanceLoading, refetch: refetchBalance } = useTokenBalance(
-        selectedAsset as ChainToken,
-        walletInfo?.publicKey
+        selectedAsset as ChainToken
     );
 
     const tokenConfig = config.tokens[selectedAsset as keyof typeof config.tokens];
@@ -134,7 +133,7 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
             }
 
             setStatus({ type: 'success', message: 'Transacción completada exitosamente!' });
-            
+
             // Refresh positions and wallet balance after successful transaction
             void refetch();
             void refetchBalance();
@@ -153,9 +152,8 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
                     <h2 className="text-2xl font-bold">Vesu Lending</h2>
                     <p className="text-blue-100 text-sm opacity-90">Gestión de activos gasless</p>
                 </div>
-                <span className={`backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${
-                    network === 'MAINNET' ? 'bg-green-500/30' : 'bg-orange-500/30'
-                }`}>
+                <span className={`backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${network === 'MAINNET' ? 'bg-green-500/30' : 'bg-orange-500/30'
+                    }`}>
                     {network}
                 </span>
             </div>
@@ -171,10 +169,10 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
                             className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Actualizar balances"
                         >
-                            <svg 
-                                className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`} 
-                                fill="none" 
-                                viewBox="0 0 24 24" 
+                            <svg
+                                className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`}
+                                fill="none"
+                                viewBox="0 0 24 24"
                                 stroke="currentColor"
                             >
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -191,47 +189,47 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
                         ) : positions.length > 0 ? (
                             positions.map((pos) => {
                                 // Icon color based on asset type
-                                const iconColor = pos.asset === 'USDC' ? 'bg-blue-500' 
+                                const iconColor = pos.asset === 'USDC' ? 'bg-blue-500'
                                     : pos.asset === 'ETH' ? 'bg-purple-500'
-                                    : pos.asset === 'STRK' ? 'bg-orange-500'
-                                    : 'bg-gray-500';
-                                
+                                        : pos.asset === 'STRK' ? 'bg-orange-500'
+                                            : 'bg-gray-500';
+
                                 return (
-                                <div key={pos.asset} className="group relative border border-gray-200 p-5 rounded-xl bg-white hover:shadow-md transition-shadow duration-200">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center space-x-2">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs ${iconColor}`}>
-                                                {pos.asset[0]}
+                                    <div key={pos.asset} className="group relative border border-gray-200 p-5 rounded-xl bg-white hover:shadow-md transition-shadow duration-200">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex items-center space-x-2">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs ${iconColor}`}>
+                                                    {pos.asset[0]}
+                                                </div>
+                                                <span className="font-bold text-lg text-gray-800">{pos.asset}</span>
                                             </div>
-                                            <span className="font-bold text-lg text-gray-800">{pos.asset}</span>
+                                            <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
+                                                {pos.apy} APY
+                                            </span>
                                         </div>
-                                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">
-                                            {pos.apy} APY
-                                        </span>
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-sm border-b border-gray-100 pb-1 mb-1">
+                                                <span className="text-gray-600 font-medium">💰 Wallet ChipiPay</span>
+                                                <TokenBalanceDisplay
+                                                    token={pos.asset as ChainToken}
+                                                    walletPublicKey={walletInfo.publicKey}
+                                                />
+                                            </div>
+                                            <div className="bg-blue-50 -mx-2 px-2 py-1.5 rounded">
+                                                <div className="flex justify-between text-sm mb-0.5">
+                                                    <span className="text-blue-700 font-medium">📊 En Vesu</span>
+                                                </div>
+                                                <div className="flex justify-between text-xs pl-4">
+                                                    <span className="text-gray-600">Suministrado</span>
+                                                    <span className="font-mono font-medium text-gray-900">{pos.supplyBalance}</span>
+                                                </div>
+                                                <div className="flex justify-between text-xs pl-4">
+                                                    <span className="text-gray-600">Deuda</span>
+                                                    <span className="font-mono font-medium text-gray-900">{pos.debtBalance}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-sm border-b border-gray-100 pb-1 mb-1">
-                                            <span className="text-gray-600 font-medium">💰 Wallet ChipiPay</span>
-                                            <TokenBalanceDisplay 
-                                                token={pos.asset as ChainToken}
-                                                walletPublicKey={walletInfo.publicKey}
-                                            />
-                                        </div>
-                                        <div className="bg-blue-50 -mx-2 px-2 py-1.5 rounded">
-                                            <div className="flex justify-between text-sm mb-0.5">
-                                                <span className="text-blue-700 font-medium">📊 En Vesu</span>
-                                            </div>
-                                            <div className="flex justify-between text-xs pl-4">
-                                                <span className="text-gray-600">Suministrado</span>
-                                                <span className="font-mono font-medium text-gray-900">{pos.supplyBalance}</span>
-                                            </div>
-                                            <div className="flex justify-between text-xs pl-4">
-                                                <span className="text-gray-600">Deuda</span>
-                                                <span className="font-mono font-medium text-gray-900">{pos.debtBalance}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                                 );
                             })
                         ) : (
@@ -256,7 +254,7 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
                         <div className="flex-1">
                             <h3 className="text-sm font-bold text-blue-900 mb-1">¿Cómo depositar fondos?</h3>
                             <p className="text-xs text-blue-700 leading-relaxed mb-2">
-                                Para depositar activos en Vesu, primero debes tener fondos en tu billetera Starknet. 
+                                Para depositar activos en Vesu, primero debes tener fondos en tu billetera Starknet.
                                 Copia tu dirección desde el panel lateral y envía tokens desde:
                             </p>
                             <ul className="text-xs text-blue-600 space-y-1 ml-4">
@@ -363,8 +361,8 @@ export default function VesuLending({ walletInfo, encryptKey }: { walletInfo: Wa
                         {/* Status Messages */}
                         {status && (
                             <div className={`p-4 rounded-md border-l-4 ${status.type === 'error' ? 'bg-red-50 border-red-500 text-red-700' :
-                                    status.type === 'success' ? 'bg-green-50 border-green-500 text-green-700' :
-                                        'bg-blue-50 border-blue-500 text-blue-700'
+                                status.type === 'success' ? 'bg-green-50 border-green-500 text-green-700' :
+                                    'bg-blue-50 border-blue-500 text-blue-700'
                                 }`}>
                                 <p className="text-sm font-medium">{status.message}</p>
                             </div>

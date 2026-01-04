@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { constants } from 'starknet';
+import { logger } from '../utils/logger';
+import { createSDKError, ErrorCode } from '../utils/errors';
 
 export type NetworkType = 'SEPOLIA' | 'MAINNET';
 
@@ -18,19 +19,36 @@ const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 export function NetworkProvider({ children }: { children: ReactNode }) {
   const [network, setNetworkState] = useState<NetworkType>('SEPOLIA');
 
-  // Cargar red guardada del localStorage al montar
+  // Load saved network from localStorage on mount
   useEffect(() => {
-    const savedNetwork = localStorage.getItem('starknet_network') as NetworkType;
-    if (savedNetwork && (savedNetwork === 'SEPOLIA' || savedNetwork === 'MAINNET')) {
-      setNetworkState(savedNetwork);
+    try {
+      const savedNetwork = localStorage.getItem('starknet_network') as NetworkType;
+      if (savedNetwork && (savedNetwork === 'SEPOLIA' || savedNetwork === 'MAINNET')) {
+        setNetworkState(savedNetwork);
+        logger.debug('Network loaded from storage', { network: savedNetwork });
+      }
+    } catch (e) {
+      logger.error('Failed to load network from storage', { error: e });
     }
   }, []);
 
   const setNetwork = (newNetwork: NetworkType) => {
-    setNetworkState(newNetwork);
-    localStorage.setItem('starknet_network', newNetwork);
-    // Recargar la página para aplicar cambios de configuración
-    window.location.reload();
+    try {
+      setNetworkState(newNetwork);
+      localStorage.setItem('starknet_network', newNetwork);
+      logger.audit('Network changed', { from: network, to: newNetwork });
+
+      // Reload page to apply config changes across all providers
+      // Note: In a pure SPA this should be handled via state, 
+      // but for heavy config changes, a reload is safer.
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+    } catch (e) {
+      const sdkError = createSDKError(ErrorCode.CONFIG_INVALID, { newNetwork }, e);
+      logger.error('Failed to set network', { error: sdkError.message });
+      throw sdkError;
+    }
   };
 
   const toggleNetwork = () => {
@@ -52,16 +70,24 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
 export function useNetwork() {
   const context = useContext(NetworkContext);
   if (context === undefined) {
-    throw new Error('useNetwork debe usarse dentro de un NetworkProvider');
+    const err = createSDKError(ErrorCode.CONFIG_INVALID, { hook: 'useNetwork' });
+    logger.error('useNetwork used outside of NetworkProvider');
+    throw err;
   }
   return context;
 }
 
-// Hook simple para obtener la red actual sin contexto (para uso en configs)
+/**
+ * Simple helper to get current network without context (for SSR or configs)
+ */
 export function getCurrentNetwork(): NetworkType {
   if (typeof window === 'undefined') {
-    return 'SEPOLIA'; // Default en SSR
+    return 'SEPOLIA'; // Default for SSR
   }
-  const saved = localStorage.getItem('starknet_network') as NetworkType;
-  return saved && (saved === 'SEPOLIA' || saved === 'MAINNET') ? saved : 'SEPOLIA';
+  try {
+    const saved = localStorage.getItem('starknet_network') as NetworkType;
+    return saved && (saved === 'SEPOLIA' || saved === 'MAINNET') ? saved : 'SEPOLIA';
+  } catch (e) {
+    return 'SEPOLIA';
+  }
 }

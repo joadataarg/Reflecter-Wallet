@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   Info,
   Eye,
-  EyeOff
+  EyeOff,
+  Receipt
 } from 'lucide-react';
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import { useFetchWallet } from '@/lib/hooks/useFetchWallet';
@@ -32,9 +33,11 @@ import { useTokenPrices } from '@/lib/hooks/useTokenPrices';
 import { useTokenBalance } from '@/lib/hooks/useTokenBalance';
 import { useSendAssets } from '@/lib/hooks/useSendAssets';
 import { formatStarknetAddress } from '@/lib/utils/formatAddress';
+import { TransactionHistory } from '@/app/components/TransactionHistory';
+import { BotsTradingOrchestrator } from '@/app/components/BotsTradingOrchestrator';
 
 type AuthView = 'login' | 'register';
-type WalletView = 'assets' | 'lending' | 'storage' | 'staging' | 'trading' | 'send' | 'receive' | 'settings';
+type WalletView = 'assets' | 'lending' | 'apps' | 'trading' | 'send' | 'receive' | 'settings' | 'history';
 
 // Token Icon Component with fallback
 const TokenIcon: React.FC<{ src: string; alt: string; fallback: string; size?: string }> = ({ src, alt, fallback, size = 'w-6 h-6' }) => {
@@ -76,7 +79,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
   const [isLoading, setIsLoading] = useState(false);
   const [walletSession, setWalletSession] = useState<WalletSession | null>(null);
   const [selectedToken, setSelectedToken] = useState<'ETH' | 'STRK' | 'USDC'>('ETH');
-  const [activeDashboardTab, setActiveDashboardTab] = useState<'assets' | 'positions' | 'trading'>('assets');
+  const [activeDashboardTab, setActiveDashboardTab] = useState<'assets' | 'positions' | 'history'>('assets');
   const [isTokenDropdownOpen, setIsTokenDropdownOpen] = useState(false);
   const [isValueVisible, setIsValueVisible] = useState(true);
   const [sendAmount, setSendAmount] = useState('');
@@ -103,9 +106,9 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
   // Real-time Data: Prices and Balances
   const { prices } = useTokenPrices();
-  const { balance: ethBalance } = useTokenBalance('ETH', wallet?.publicKey);
-  const { balance: strkBalance } = useTokenBalance('STRK', wallet?.publicKey);
-  const { balance: usdcBalance } = useTokenBalance('USDC', wallet?.publicKey);
+  const { balance: ethBalance } = useTokenBalance('ETH');
+  const { balance: strkBalance } = useTokenBalance('STRK');
+  const { balance: usdcBalance } = useTokenBalance('USDC');
 
   // Send Assets Hook
   const sendAssetsHook = useSendAssets(selectedToken);
@@ -393,55 +396,53 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   </div>
 
 
-                  {/* Send / Receive Buttons */}
-                  <div className="grid grid-cols-2 gap-2 p-4 border-b border-white/10">
+                  {/* Action Buttons Row 1: Send, Receive */}
+                  <div className="grid grid-cols-2 gap-2 p-3 border-b border-white/10">
                     <button
                       onClick={handleInitSend}
-                      className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
                     >
-                      <ArrowUp size={16} className="text-white" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-white">Send</span>
+                      <ArrowUp size={18} className="text-white" />
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Send</span>
                     </button>
                     <button
                       onClick={() => {
                         setIsQrLoading(true);
                         setWalletView('receive');
                       }}
-                      className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
                     >
-                      <ArrowDown size={16} className="text-white" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-white">Receive</span>
+                      <ArrowDown size={18} className="text-white" />
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Receive</span>
                     </button>
                   </div>
 
-                  {/* Storage, Lending, Staging Buttons */}
-                  <div className="grid grid-cols-3 gap-2 p-4 border-b border-white/10">
+                  {/* Action Buttons Row 2: Apps, Lending, Bots Trading */}
+                  <div className="grid grid-cols-3 gap-2 p-3 border-b border-white/10">
                     <button
-                      onClick={() => setWalletView('storage')}
-                      className="flex flex-col items-center gap-2 p-3 border border-white/10 hover:bg-white/5 transition-all"
-                    >
-                      <Database size={18} className="text-white" />
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-white">Storage</span>
-                    </button>
-
-                    <button
-                      onClick={() => setWalletView('lending')}
-                      className="flex flex-col items-center gap-2 p-3 border border-white/10 hover:bg-white/5 transition-all"
-                    >
-                      <TrendingUp size={18} className="text-white" />
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-white">Lending</span>
-                    </button>
-
-                    <button
-                      onClick={() => setWalletView('staging')}
-                      className="flex flex-col items-center gap-2 p-3 border border-white/10 hover:bg-white/5 transition-all"
+                      onClick={() => setWalletView('apps')}
+                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
                     >
                       <Layers size={18} className="text-white" />
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-white">Staging</span>
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Apps</span>
+                    </button>
+                    <button
+                      onClick={() => setWalletView('lending')}
+                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
+                    >
+                      <TrendingUp size={18} className="text-white" />
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Lending</span>
+                    </button>
+                    <button
+                      onClick={() => setWalletView('trading')}
+                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
+                    >
+                      <Sparkles size={18} className="text-white" />
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Bots</span>
                     </button>
                   </div>
 
-                  {/* Dashboard Explorer Tabs */}
+                  {/* Dashboard Tabs: Assets, Positions, History */}
                   <div className="flex-1">
                     <div className="px-4 pt-4 grid grid-cols-3 border-b border-white/5">
                       <button
@@ -459,11 +460,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         {activeDashboardTab === 'positions' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
                       </button>
                       <button
-                        onClick={() => setActiveDashboardTab('trading')}
-                        className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'trading' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
+                        onClick={() => setActiveDashboardTab('history')}
+                        className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'history' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
                       >
-                        Bot Trading
-                        {activeDashboardTab === 'trading' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
+                        History
+                        {activeDashboardTab === 'history' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
                       </button>
                     </div>
 
@@ -565,15 +566,12 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         </div>
                       )}
 
-                      {activeDashboardTab === 'trading' && (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                          <Sparkles size={32} className="text-zinc-600 mb-4" />
-                          <h4 className="text-sm font-bold text-white uppercase tracking-tight mb-2">Bot Trading</h4>
-                          <div className="inline-flex items-center gap-2 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-md mb-4 text-blue-400">
-                            <Info size={12} />
-                            <span className="text-[9px] font-bold uppercase tracking-widest">Under Development</span>
-                          </div>
-                          <p className="text-[10px] text-zinc-500 max-w-[180px]">Automated AI strategies are coming soon.</p>
+                      {activeDashboardTab === 'history' && (
+                        <div className="p-4">
+                          <TransactionHistory
+                            walletAddress={walletSession?.publicKey}
+                            network={network}
+                          />
                         </div>
                       )}
                     </div>
@@ -689,6 +687,74 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                               className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                             />
                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Staging / Logs Section */}
+                    <div>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Staging Logs</h3>
+                      <div className="space-y-3">
+                        {/* Integration Status Cards */}
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Firebase Auth</span>
+                            </div>
+                            <span className="text-xs text-emerald-500">✓ Active</span>
+                          </div>
+                          <div className="text-[10px] text-zinc-400">User: {user?.email}</div>
+                        </div>
+
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Starknet {network}</span>
+                            </div>
+                            <span className="text-xs text-emerald-500">✓ Connected</span>
+                          </div>
+                          <div className="text-[10px] text-zinc-400">Network: {network}</div>
+                        </div>
+
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${walletSession ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Wallet Session</span>
+                            </div>
+                            <span className={`text-xs ${walletSession ? 'text-emerald-500' : 'text-amber-500'}`}>
+                              {walletSession ? '✓ Active' : '○ Inactive'}
+                            </span>
+                          </div>
+                          {walletSession && (
+                            <div className="text-[10px] text-zinc-400 font-mono truncate">
+                              {walletSession.publicKey.slice(0, 20)}...
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">ChipiPay SDK</span>
+                            </div>
+                            <span className="text-xs text-emerald-500">✓ Loaded</span>
+                          </div>
+                          <div className="text-[10px] text-zinc-400">Gasless transactions ready</div>
+                        </div>
+
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Vesu Protocol</span>
+                            </div>
+                            <span className="text-xs text-emerald-500">✓ Available</span>
+                          </div>
+                          <div className="text-[10px] text-zinc-400">Lending hooks configured</div>
                         </div>
                       </div>
                     </div>
@@ -967,7 +1033,14 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                 <VesuExplorer onBack={() => setWalletView('assets')} />
               )}
 
-              {walletView === 'storage' && (
+              {walletView === 'trading' && (
+                <BotsTradingOrchestrator
+                  onBack={() => setWalletView('assets')}
+                  isWalletView={true}
+                />
+              )}
+
+              {walletView === 'apps' && (
                 <div className="p-6">
                   <button
                     onClick={() => setWalletView('assets')}
@@ -977,15 +1050,16 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   </button>
 
                   <div className="text-center py-12">
-                    <Database size={48} className="mx-auto mb-4 text-zinc-600" />
-                    <p className="text-sm text-zinc-400">
-                      Encrypted storage coming soon
+                    <Layers size={48} className="mx-auto mb-4 text-zinc-600" />
+                    <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-tight">Deployed Apps</h3>
+                    <p className="text-xs text-zinc-400">
+                      Your deployed applications will appear here
                     </p>
                   </div>
                 </div>
               )}
 
-              {walletView === 'staging' && (
+              {walletView === 'history' && (
                 <div className="p-6">
                   <button
                     onClick={() => setWalletView('assets')}
@@ -994,85 +1068,14 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     <ChevronLeft size={14} /> Back to Assets
                   </button>
 
-                  <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight">Staging</h2>
-                    <p className="text-xs text-zinc-400">Verificación de integraciones para desarrolladores</p>
+                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Transaction History</h2>
+
+                  <div className="text-center py-12">
+                    <Receipt size={48} className="mx-auto mb-4 text-zinc-600" />
+                    <p className="text-sm text-zinc-400">
+                      Your transaction history will appear here
+                    </p>
                   </div>
-
-                  <div className="space-y-3">
-                    {/* Integration Status Cards */}
-                    <div className="p-4 bg-white/5 border border-white/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                          <span className="text-xs font-bold text-white uppercase tracking-wider">Firebase Auth</span>
-                        </div>
-                        <span className="text-xs text-emerald-500">✓ Active</span>
-                      </div>
-                      <div className="text-[10px] text-zinc-400">User: {user?.email}</div>
-                    </div>
-
-                    <div className="p-4 bg-white/5 border border-white/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                          <span className="text-xs font-bold text-white uppercase tracking-wider">Starknet {network}</span>
-                        </div>
-                        <span className="text-xs text-emerald-500">✓ Connected</span>
-                      </div>
-                      <div className="text-[10px] text-zinc-400">Network: {network}</div>
-                    </div>
-
-                    <div className="p-4 bg-white/5 border border-white/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${walletSession ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-                          <span className="text-xs font-bold text-white uppercase tracking-wider">Wallet Session</span>
-                        </div>
-                        <span className={`text-xs ${walletSession ? 'text-emerald-500' : 'text-amber-500'}`}>
-                          {walletSession ? '✓ Active' : '○ Inactive'}
-                        </span>
-                      </div>
-                      {walletSession && (
-                        <div className="text-[10px] text-zinc-400 font-mono truncate">
-                          {walletSession.publicKey.slice(0, 20)}...
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4 bg-white/5 border border-white/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                          <span className="text-xs font-bold text-white uppercase tracking-wider">ChipiPay SDK</span>
-                        </div>
-                        <span className="text-xs text-emerald-500">✓ Loaded</span>
-                      </div>
-                      <div className="text-[10px] text-zinc-400">Gasless transactions ready</div>
-                    </div>
-
-                    <div className="p-4 bg-white/5 border border-white/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                          <span className="text-xs font-bold text-white uppercase tracking-wider">Vesu Protocol</span>
-                        </div>
-                        <span className="text-xs text-emerald-500">✓ Available</span>
-                      </div>
-                      <div className="text-[10px] text-zinc-400">Lending hooks configured</div>
-                    </div>
-                  </div>
-
-                  {!walletSession && (
-                    <div className="mt-6 p-4 bg-amber-950/20 border border-amber-500/30">
-                      <div className="text-xs text-amber-500 mb-2 font-bold uppercase tracking-wider">⚠ Acción Requerida</div>
-                      <div className="text-[10px] text-zinc-400 mb-3">Conecta tu wallet para activar todas las funciones</div>
-                      <WalletManager
-                        onSessionChange={handleSessionChange}
-                        walletSession={walletSession}
-                      />
-                    </div>
-                  )}
                 </div>
               )}
             </>

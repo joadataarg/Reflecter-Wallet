@@ -1,17 +1,38 @@
-import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import { useGetWallet } from '@chipi-stack/nextjs';
+import { useFirebaseAuth } from './useFirebaseAuth';
+import { logger } from '../utils/logger';
 
+/**
+ * Hook to fetch the user's Starknet wallet managed by ChipiPay
+ */
 export function useFetchWallet() {
     const { user, getToken } = useFirebaseAuth();
 
-    // The hook automatically fetches when params are stable and valid
-    // According to docs: useGetWallet({ getBearerToken, params })
-    const { data: wallet, isLoading, error } = useGetWallet({
+    const { data: walletData, isLoading, error, refetch } = useGetWallet({
         getBearerToken: getToken,
-        params: {
-            externalUserId: user?.uid || '',
-        },
+        params: user ? {
+            externalUserId: user.uid // Always use Firebase UID as reference
+        } : undefined,
     });
 
-    return { wallet, isLoading, error };
+    if (error) {
+        logger.error('Error fetching user wallet from ChipiPay', {
+            error,
+            uid: user?.uid
+        });
+    }
+
+    if (walletData) {
+        logger.debug('Wallet data fetched successfully', {
+            publicKey: walletData.publicKey,
+            walletId: walletData.id
+        });
+    }
+
+    return {
+        wallet: walletData,
+        isLoading,
+        error,
+        refetch,
+    };
 }

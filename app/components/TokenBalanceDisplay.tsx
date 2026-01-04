@@ -13,7 +13,7 @@ type TokenBalanceDisplayProps = {
  * Uses the logged-in user's externalUserId to fetch balance
  */
 export function TokenBalanceDisplay({ token, walletPublicKey }: TokenBalanceDisplayProps) {
-    const { balance, isLoading, error } = useTokenBalance(token, walletPublicKey);
+    const { balance, isLoading, error } = useTokenBalance(token);
 
     if (isLoading) {
         return <span className="font-mono font-medium text-gray-400 animate-pulse">...</span>;
