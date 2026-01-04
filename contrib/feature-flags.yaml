@@ -71,7 +71,7 @@ flags:
     name: NPM_PACKAGE_EXPORT
     default: false
     status: planned
-    description: Export SDK as @openthedoorz/sdk on npm for package consumers
+    description: Export SDK as @reflecterwallet/app on npm for package consumers
     branch: feat/npm-package
     last_updated: 2026-01-02
 

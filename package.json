@@ -1,7 +1,7 @@
 {
-  "name": "@openthedoorz/sdk",
+  "name": "@reflecterwallet/app",
   "version": "1.0.0",
-  "description": "OpenTheDoorz SDK with ChipiPay Integration",
+  "description": "Reflecter Wallet - Your Starknet Wallet Without Seed Phrases",
   "private": true,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

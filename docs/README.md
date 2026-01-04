@@ -21,9 +21,9 @@ metaLinks:
 
 # Developer Platform
 
-<h2 align="center">Developer Guide Open The Doorz SDK</h2>
+<h2 align="center">Developer Guide Reflecter Wallet</h2>
 
-<p align="center">Welcome to the initial Developer Guide</p>
+<p align="center">Your Starknet Wallet Without Seed Phrases</p>
 
 <p align="center"></p>
 

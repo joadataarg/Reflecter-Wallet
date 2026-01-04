@@ -226,12 +226,22 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
         {/* Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-bold text-xs">OTD</div>
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold text-xs">RW</div>
             <span className="text-xs font-bold uppercase tracking-widest text-white">
-              {profile.firstName ? `Hola ${profile.firstName} 👋` : 'Open The Doorz'}
+              {profile.firstName ? `Hola ${profile.firstName} 👋` : 'Reflecter Wallet'}
             </span>
           </div>
           <div className="flex items-center gap-1">
+            {/* Close button - only show in modal mode (not embedded) */}
+            {!isEmbedded && (
+              <button
+                onClick={onClose}
+                className="p-2 text-zinc-300 hover:text-white transition-colors"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            )}
             {user && walletView !== 'settings' && (
               <button
                 onClick={() => setWalletView('settings')}
@@ -254,10 +264,10 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   {authView === 'register' ? <Sparkles size={32} /> : <Lock size={32} />}
                 </div>
                 <h3 className="text-xl font-bold mb-2 uppercase tracking-tight text-white">
-                  {authView === 'login' ? 'Welcome Back' : 'Join the Bridge'}
+                  {authView === 'login' ? 'Welcome Back' : 'Create Wallet'}
                 </h3>
                 <p className="text-sm text-zinc-300 font-light">
-                  {authView === 'login' ? 'Access your Starknet assets' : 'Create a secure non-custodial account'}
+                  {authView === 'login' ? 'Access your Starknet assets' : 'Create your Starknet wallet without seed phrases'}
                 </p>
               </div>
 
@@ -305,12 +315,12 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
               <div className="mt-8 pt-6 border-t border-white/5 text-center">
                 {authView === 'login' ? (
-                  <p className="text-xs text-zinc-300 font-light">
-                    New to OpenTheDoorz?{' '}
-                    <button onClick={() => setAuthView('register')} className="text-white font-bold hover:underline">
-                      Register
-                    </button>
-                  </p>
+                <p className="text-xs text-zinc-300 font-light">
+                  New to Reflecter Wallet?{' '}
+                  <button onClick={() => setAuthView('register')} className="text-white font-bold hover:underline">
+                    Create Wallet
+                  </button>
+                </p>
                 ) : (
                   <button
                     onClick={() => setAuthView('login')}
@@ -622,7 +632,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                           </div>
                           <div>
                             <div className="text-sm font-bold text-white">{user?.email}</div>
-                            <div className="text-xs text-zinc-400">Connected via OTD SDK</div>
+                            <div className="text-xs text-zinc-400">Connected via Reflecter Wallet</div>
                           </div>
                         </div>
                       </div>
@@ -1084,7 +1094,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
         {/* Footer */}
         <div className="p-4 bg-zinc-950 border-t border-white/10 flex items-center justify-between text-[10px] text-zinc-500 uppercase tracking-widest font-bold shrink-0">
-          <div>Open The Doorz (OTD) | Starknet SDK</div>
+          <div>Reflecter Wallet | Starknet Wallet</div>
           <div>v1.0.0</div>
         </div>
       </div>

@@ -1,8 +1,8 @@
-# Open The Doorz (OTD) - Arquitectura del Sistema
+# Reflecter Wallet - Arquitectura del Sistema
 
 ## Resumen Ejecutivo
 
-Open The Doorz es una plataforma de gestión de aplicaciones blockchain donde cada organización es completamente aislada y orquesta su propia API. La arquitectura está diseñada para soportar múltiples organizaciones, cada una con su propio conjunto de aplicaciones (apps), credenciales, y entornos (Developer/Production).
+Reflecter Wallet es una billetera Web3 nativa de Starknet con onboarding sin seed phrases mediante social login. La arquitectura está diseñada para proporcionar una experiencia de usuario sin fricciones manteniendo seguridad y acceso completo al ecosistema DeFi de Starknet.
 
 ---
 

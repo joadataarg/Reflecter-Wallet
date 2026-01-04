@@ -5,13 +5,13 @@ import { NetworkProvider } from '@/lib/hooks/useNetwork.tsx';
 import { WalletSessionProvider } from '@/lib/context/WalletSessionContext';
 
 export const metadata: Metadata = {
-  title: 'Open The Doorz (OTD) | The Premium Starknet SDK',
-  description: 'Open The Doorz (OTD) is the professional-grade SDK for the Starknet ecosystem. Enable gasless transactions, seamless wallet integration, and DeFi connectivity with an institutional aesthetic.',
-  keywords: ['Starknet', 'SDK', 'Open The Doorz', 'OTD', 'Gasless Transactions', 'Web3', 'Blockchain', 'DeFi', 'Institutional SDK'],
+  title: 'Reflecter Wallet | Starknet Wallet with Social Login - No Seed Phrases',
+  description: 'The easiest way to use Starknet. Create your Web3 wallet in seconds with social login. Send, receive, and trade assets without seed phrases. Live on mainnet.',
+  keywords: ['Starknet wallet', 'Web3 wallet', 'social login wallet', 'no seed phrase', 'Cairo wallet', 'Layer 2 wallet', 'Reflecter Wallet'],
   authors: [{ name: 'Reflecter Labs' }],
   openGraph: {
-    title: 'Open The Doorz (OTD) | The Premium Starknet SDK',
-    description: 'Professional-grade SDK for Starknet. Gasless, Fast, Secure.',
+    title: 'Reflecter Wallet | Starknet Wallet with Social Login - No Seed Phrases',
+    description: 'Your Starknet Wallet Without Seed Phrases. Social login onboarding, full DeFi access, Starknet native.',
     type: 'website',
   }
 };

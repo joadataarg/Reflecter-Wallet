@@ -1,5 +1,5 @@
 /**
- * Global Type Definitions for OpenTheDoorz SDK
+ * Global Type Definitions for Reflecter Wallet
  */
 
 import { ErrorCode } from './utils/errors';

@@ -17,10 +17,11 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
 
   const navLinks = [
     { label: 'HOME', href: '#hero' },
+    { label: 'BENEFITS', href: '#benefits' },
+    { label: 'HOW IT WORKS', href: '#demo' },
+    { label: 'COMPARE', href: '#comparison' },
     { label: 'ROADMAP', href: '#roadmap' },
-    { label: 'VALUES', href: '#philosophy' },
-    { label: 'SOLUTIONS', href: '#solutions' },
-    { label: 'TEAM', href: '#team' },
+    { label: 'DEVELOPERS', href: '#developers' },
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
@@ -48,11 +49,11 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
       <nav className="max-w-7xl mx-auto px-6 h-14 md:h-16 flex items-center justify-between relative">
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-7 h-7 bg-white text-black flex items-center justify-center font-black text-[10px] transition-transform group-hover:scale-105 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-              OTD
+            <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center font-black text-[10px] transition-transform group-hover:scale-105 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+              RW
             </div>
             <span className="text-[11px] font-black uppercase tracking-[0.2em] hidden sm:block">
-              OPEN THE DOORZ
+              REFLECTER WALLET
             </span>
           </Link>
         </div>
@@ -75,17 +76,16 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
 
         <div className="hidden md:flex items-center gap-8">
           <Link
-            href="https://openthedoorz.gitbook.io/open-the-doorz/"
-            target="_blank"
+            href="/login"
             className="group flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors"
           >
-            DOCS <ArrowUpRight size={10} className="text-zinc-600 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            LOGIN
           </Link>
           <button
             onClick={onOpenWallet}
-            className="px-5 py-2 bg-white text-black text-[10px] font-black uppercase tracking-[0.15em] hover:bg-zinc-200 transition-all active:scale-95 flex items-center gap-2 shadow-[0_4px_20px_rgba(255,255,255,0.05)]"
+            className="px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 flex items-center gap-2 shadow-[0_4px_20px_rgba(255,255,255,0.05)]"
           >
-            TRY NOW
+            Create Wallet
           </button>
         </div>
 
@@ -115,21 +115,20 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
           <div className="w-full h-px bg-white/5 my-4" />
 
           <Link
-            href="https://openthedoorz.gitbook.io/open-the-doorz/"
-            target="_blank"
+            href="/login"
             className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all flex items-center gap-2"
             onClick={() => setIsMenuOpen(false)}
           >
-            DOCUMENTATION <ArrowUpRight size={14} />
+            LOGIN
           </Link>
-          <button
+            <button
             onClick={() => {
               setIsMenuOpen(false);
               onOpenWallet();
             }}
-            className="w-full max-w-xs py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all shadow-[0_10px_40px_rgba(255,255,255,0.05)]"
+            className="w-full max-w-xs py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-[0_10px_40px_rgba(255,255,255,0.05)]"
           >
-            TRY THE SDK NOW
+            CREATE WALLET NOW
           </button>
         </div>
       </div>

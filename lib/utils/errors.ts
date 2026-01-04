@@ -1,5 +1,5 @@
 /**
- * Centralized Error System for OpenTheDoorz SDK
+ * Centralized Error System for Reflecter Wallet
  * Provides consistent error handling with error codes
  */
 

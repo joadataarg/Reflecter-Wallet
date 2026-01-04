@@ -1,6 +1,6 @@
 /**
- * @openthedoorz/sdk - Punto de entrada principal
- * Expone la API pública para ser consumida por aplicaciones
+ * @reflecterwallet/app - Punto de entrada principal
+ * Reflecter Wallet - Your Starknet Wallet Without Seed Phrases
  */
 
 // Autenticación

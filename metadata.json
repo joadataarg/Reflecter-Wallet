@@ -1,5 +1,5 @@
 {
-  "name": "OpenTheDoorz",
-  "description": "A high-performance Web2-to-Web3 bridge and Starknet wallet plugin with a minimalist black and white aesthetic.",
+  "name": "Reflecter Wallet",
+  "description": "Your Starknet Wallet Without Seed Phrases. Social login onboarding, full DeFi access, Starknet native.",
   "requestFramePermissions": []
 }

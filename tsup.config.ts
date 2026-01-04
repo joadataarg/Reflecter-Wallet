@@ -18,6 +18,6 @@ export default defineConfig((options: Options) => ({
     ],
     outDir: 'dist',
     banner: {
-        js: '/** OpenTheDoorz SDK v1.0.0 */',
+        js: '/** Reflecter Wallet v1.0.0 */',
     },
 }));

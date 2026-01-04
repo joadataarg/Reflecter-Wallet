@@ -1,5 +1,5 @@
 /**
- * Structured Logger for OpenTheDoorz SDK
+ * Structured Logger for Reflecter Wallet
  * Replaces console.log with configurable, environment-aware logging
  */
 
