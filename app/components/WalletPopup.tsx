@@ -33,10 +33,9 @@ import { useTokenPrices } from '@/lib/hooks/useTokenPrices';
 import { useTokenBalance } from '@/lib/hooks/useTokenBalance';
 import { useSendAssets } from '@/lib/hooks/useSendAssets';
 import { formatStarknetAddress } from '@/lib/utils/formatAddress';
-import { TransactionHistory } from '@/app/components/TransactionHistory';
 
 type AuthView = 'login' | 'register';
-type WalletView = 'assets' | 'send' | 'receive' | 'settings' | 'history';
+type WalletView = 'assets' | 'send' | 'receive' | 'settings' | 'transactions';
 
 // Token Icon Component with fallback
 const TokenIcon: React.FC<{ src: string; alt: string; fallback: string; size?: string }> = ({ src, alt, fallback, size = 'w-6 h-6' }) => {
@@ -88,7 +87,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
     }
   }, [isOpen, initialAuthView]);
 
-  const [activeDashboardTab, setActiveDashboardTab] = useState<'assets' | 'positions' | 'history'>('assets');
+  const [activeDashboardTab, setActiveDashboardTab] = useState<'assets' | 'transactions'>('assets');
   const [isTokenDropdownOpen, setIsTokenDropdownOpen] = useState(false);
   const [isValueVisible, setIsValueVisible] = useState(true);
   const [sendAmount, setSendAmount] = useState('');
@@ -398,24 +397,12 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                           </svg>
                         </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          if (network === 'MAINNET') {
-                            alert('Coming Soon!\n\nSepolia network is in development and will be available soon. For now, you can only operate on Mainnet.');
-                          } else {
-                            toggleNetwork();
-                          }
-                        }}
-                        className={`px-2 py-0.5 border text-[7px] font-bold uppercase tracking-widest transition-all rounded-full ${network === 'MAINNET'
-                          ? 'border-emerald-500/30 text-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10'
-                          : 'border-amber-500/30 text-amber-500 bg-amber-500/5 hover:bg-amber-500/10'
-                          }`}
-                      >
+                      <div className="px-2 py-0.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[7px] font-bold uppercase tracking-widest rounded-full">
                         <span className="flex items-center gap-1">
-                          <div className={`w-1 h-1 rounded-full animate-pulse ${network === 'MAINNET' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-                          {network} NETWORK
+                          <div className="w-1 h-1 rounded-full animate-pulse bg-emerald-500"></div>
+                          MAINNET NETWORK
                         </span>
-                      </button>
+                      </div>
                     </div>
 
                     {/* Fila 2: Balance + Porcentaje con Toggle */}
@@ -470,9 +457,9 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     </button>
                   </div>
 
-                  {/* Dashboard Tabs: Assets, Positions, History */}
+                  {/* Dashboard Tabs: Assets and Transactions */}
                   <div className="flex-1">
-                    <div className="px-4 pt-4 grid grid-cols-3 border-b border-white/5">
+                    <div className="px-4 pt-4 grid grid-cols-2 border-b border-white/5">
                       <button
                         onClick={() => setActiveDashboardTab('assets')}
                         className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'assets' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
@@ -481,18 +468,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         {activeDashboardTab === 'assets' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
                       </button>
                       <button
-                        onClick={() => setActiveDashboardTab('positions')}
-                        className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'positions' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
+                        onClick={() => setActiveDashboardTab('transactions')}
+                        className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'transactions' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
                       >
-                        Positions
-                        {activeDashboardTab === 'positions' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
-                      </button>
-                      <button
-                        onClick={() => setActiveDashboardTab('history')}
-                        className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'history' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
-                      >
-                        History
-                        {activeDashboardTab === 'history' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
+                        Transactions
+                        {activeDashboardTab === 'transactions' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
                       </button>
                     </div>
 
@@ -580,26 +560,13 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         </div>
                       )}
 
-                      {activeDashboardTab === 'positions' && (
+                      {activeDashboardTab === 'transactions' && (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                          <TrendingUp size={32} className="text-zinc-600 mb-4" />
-                          <h4 className="text-sm font-bold text-white uppercase tracking-tight mb-2">Liquidity Positions</h4>
-                          <div className="inline-flex items-center gap-2 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-md mb-4 text-blue-400">
-                            <Info size={12} />
-                            <span className="text-[9px] font-bold uppercase tracking-widest">Under Development</span>
-                          </div>
+                          <Receipt size={32} className="text-zinc-600 mb-4" />
+                          <h4 className="text-sm font-bold text-white uppercase tracking-tight mb-2">Transactions</h4>
                           <p className="text-[10px] text-zinc-500 max-w-[200px]">
-                            Real-time tracking of your lending, borrow and multiply positions is coming soon.
+                            Advanced transaction history and tracking feature is coming soon.
                           </p>
-                        </div>
-                      )}
-
-                      {activeDashboardTab === 'history' && (
-                        <div className="p-4">
-                          <TransactionHistory
-                            walletAddress={walletSession?.publicKey}
-                            network={network}
-                          />
                         </div>
                       )}
                     </div>
@@ -749,11 +716,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         <div className="p-4 bg-white/5 border border-white/10">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${walletSession ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+                              <div className={`w-2 h-2 rounded-full ${wallet ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
                               <span className="text-xs font-bold text-white uppercase tracking-wider">Wallet Session</span>
                             </div>
-                            <span className={`text-xs ${walletSession ? 'text-emerald-500' : 'text-amber-500'}`}>
-                              {walletSession ? '✓ Active' : '○ Inactive'}
+                            <span className={`text-xs ${wallet ? 'text-emerald-500' : 'text-amber-500'}`}>
+                              {wallet ? '✓ Activated' : '○ Inactive'}
                             </span>
                           </div>
                           {walletSession && (
@@ -1057,7 +1024,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                 </div>
               )}
 
-              {walletView === 'history' && (
+              {walletView === 'transactions' && (
                 <div className="p-6">
                   <button
                     onClick={() => setWalletView('assets')}
@@ -1066,12 +1033,12 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     <ChevronLeft size={14} /> Back to Assets
                   </button>
 
-                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Transaction History</h2>
+                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Transactions</h2>
 
                   <div className="text-center py-12">
                     <Receipt size={48} className="mx-auto mb-4 text-zinc-600" />
                     <p className="text-sm text-zinc-400">
-                      Your transaction history will appear here
+                      This feature is coming soon. Stay tuned for advanced transaction tracking.
                     </p>
                   </div>
                 </div>

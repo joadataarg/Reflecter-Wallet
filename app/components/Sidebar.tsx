@@ -10,9 +10,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
     const menuItems = [
         { icon: <Layout size={18} />, label: 'Dashboard', active: true },
-        { icon: <User size={18} />, label: 'Profile', active: false },
-        { icon: <Shield size={18} />, label: 'Security', active: false },
-        { icon: <Settings size={18} />, label: 'Preferences', active: false },
     ];
 
     return (
@@ -32,8 +29,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
                     <button
                         key={index}
                         className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group ${item.active
-                                ? 'bg-white/10 text-white shadow-sm'
-                                : 'text-zinc-500 hover:text-white hover:bg-white/5'
+                            ? 'bg-white/10 text-white shadow-sm'
+                            : 'text-zinc-500 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         <span className={`${item.active ? 'text-blue-400' : 'text-zinc-500 group-hover:text-blue-400'} transition-colors`}>

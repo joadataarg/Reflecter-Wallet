@@ -17,51 +17,23 @@ type NetworkContextType = {
 const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 
 export function NetworkProvider({ children }: { children: ReactNode }) {
-  const [network, setNetworkState] = useState<NetworkType>('SEPOLIA');
+  const [network] = useState<NetworkType>('MAINNET');
 
-  // Load saved network from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedNetwork = localStorage.getItem('starknet_network') as NetworkType;
-      if (savedNetwork && (savedNetwork === 'SEPOLIA' || savedNetwork === 'MAINNET')) {
-        setNetworkState(savedNetwork);
-        logger.debug('Network loaded from storage', { network: savedNetwork });
-      }
-    } catch (e) {
-      logger.error('Failed to load network from storage', { error: e });
-    }
-  }, []);
-
+  // No switching allowed in production
   const setNetwork = (newNetwork: NetworkType) => {
-    try {
-      setNetworkState(newNetwork);
-      localStorage.setItem('starknet_network', newNetwork);
-      logger.audit('Network changed', { from: network, to: newNetwork });
-
-      // Reload page to apply config changes across all providers
-      // Note: In a pure SPA this should be handled via state, 
-      // but for heavy config changes, a reload is safer.
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
-    } catch (e) {
-      const sdkError = createSDKError(ErrorCode.CONFIG_INVALID, { newNetwork }, e);
-      logger.error('Failed to set network', { error: sdkError.message });
-      throw sdkError;
-    }
+    logger.debug('Network switching is disabled in production', { attempt: newNetwork });
   };
 
   const toggleNetwork = () => {
-    const newNetwork = network === 'MAINNET' ? 'SEPOLIA' : 'MAINNET';
-    setNetwork(newNetwork);
+    logger.debug('Network toggling is disabled in production');
   };
 
   const value = {
     network,
     setNetwork,
     toggleNetwork,
-    isMainnet: network === 'MAINNET',
-    isSepolia: network === 'SEPOLIA',
+    isMainnet: true,
+    isSepolia: false,
   };
 
   return <NetworkContext.Provider value={value}>{children}</NetworkContext.Provider>;
@@ -81,13 +53,5 @@ export function useNetwork() {
  * Simple helper to get current network without context (for SSR or configs)
  */
 export function getCurrentNetwork(): NetworkType {
-  if (typeof window === 'undefined') {
-    return 'SEPOLIA'; // Default for SSR
-  }
-  try {
-    const saved = localStorage.getItem('starknet_network') as NetworkType;
-    return saved && (saved === 'SEPOLIA' || saved === 'MAINNET') ? saved : 'SEPOLIA';
-  } catch (e) {
-    return 'SEPOLIA';
-  }
+  return 'MAINNET';
 }
