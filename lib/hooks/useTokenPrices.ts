@@ -38,7 +38,10 @@ export function useTokenPrices() {
                 });
                 setError(null);
             } catch (err: any) {
-                console.error('Price fetch error:', err);
+                console.error('Price fetch error:', err.name, err.message);
+                if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+                    console.warn('NetworkError: The price API might be blocked by an adblocker or the network. Using fallback prices.');
+                }
                 setError(err.message);
             } finally {
                 setIsLoading(false);

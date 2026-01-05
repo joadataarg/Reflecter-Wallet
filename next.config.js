@@ -4,3 +4,5 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+// NOTE: This is Reflecter Labs

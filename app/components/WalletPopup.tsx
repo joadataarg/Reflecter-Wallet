@@ -12,17 +12,31 @@ import {
   Sparkles,
   ArrowUp,
   ArrowDown,
-  Settings,
+  Home,
+  LayoutGrid,
+  CreditCard,
+  RefreshCw,
+  Bell,
+  Plus,
+  Pause,
+  Circle,
+  ShieldCheck,
   ExternalLink,
-  Copy,
-  CheckCircle2,
-  EyeOff,
-  Receipt,
+  Settings,
   QrCode,
-  Scan,
-  Globe,
   Eye,
-  Info
+  EyeOff,
+  Copy,
+  Receipt,
+  Info,
+  Globe,
+  MessageSquare,
+  Gift,
+  CheckCircle2,
+  Star,
+  Trophy,
+  Play,
+  Share2
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
@@ -39,7 +53,7 @@ import { useSendAssets } from '@/lib/hooks/useSendAssets';
 import { formatStarknetAddress } from '@/lib/utils/formatAddress';
 
 type AuthView = 'login' | 'register';
-type WalletView = 'assets' | 'send' | 'receive' | 'settings' | 'transactions';
+type WalletView = 'home' | 'assets' | 'send' | 'receive' | 'settings' | 'transactions' | 'miniapps' | 'card';
 
 // Token Icon Component with fallback
 const TokenIcon: React.FC<{ src: string; alt: string; fallback: string; size?: string }> = ({ src, alt, fallback, size = 'w-6 h-6' }) => {
@@ -72,6 +86,152 @@ interface WalletPopupProps {
   initialAuthView?: AuthView;
 }
 
+// Feedback Form Component
+const FeedbackForm: React.FC<{ onComplete: () => void; onClose: () => void }> = ({ onComplete, onClose }) => {
+  const [step, setStep] = useState(1);
+  const [score, setScore] = useState<number | null>(null);
+  const [text, setText] = useState('');
+  const [qrRating, setQrRating] = useState<number | null>(null);
+  const [helpsSave, setHelpsSave] = useState<string | null>(null);
+  const [mainUsage, setMainUsage] = useState<string | null>(null);
+
+  const handleNext = () => setStep(prev => prev + 1);
+
+  return (
+    <div className="flex-1 flex flex-col pt-4">
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map(s => (
+            <div key={s} className={`w-8 h-1 rounded-full transition-all ${s <= step ? 'bg-blue-500' : 'bg-white/10'}`} />
+          ))}
+        </div>
+        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{step}/5</span>
+      </div>
+
+      <div className="flex-1 space-y-6">
+        {step === 1 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight">¿Qué tan probable es que recomiendes Reflecter Wallet a un amigo?</h3>
+            <div className="grid grid-cols-5 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                <button
+                  key={n}
+                  onClick={() => setScore(n)}
+                  className={`py-3 rounded-xl border font-black transition-all ${score === n ? 'bg-white border-white text-black scale-105 shadow-lg' : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/30'}`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <button
+              disabled={score === null}
+              onClick={handleNext}
+              className="w-full py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl disabled:opacity-50 transition-all shadow-xl shadow-blue-600/20"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight">
+              {score! <= 6 ? '¿Qué es lo principal que no te gustó o te frustró?' : '¿Qué es lo que más te gustó?'}
+            </h3>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Escribe tu respuesta aquí..."
+              className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs min-h-[120px] focus:border-blue-500 focus:outline-none transition-all"
+            />
+            <button
+              onClick={handleNext}
+              className="w-full py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-blue-600/20"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight">¿Has usado el pago por QR? ¿Qué tan fácil fue?</h3>
+            <div className="flex justify-center gap-4">
+              {[1, 2, 3, 4, 5].map(n => (
+                <button
+                  key={n}
+                  onClick={() => setQrRating(n)}
+                  className="transition-all hover:scale-110"
+                >
+                  <Star
+                    size={32}
+                    className={qrRating && n <= qrRating ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-700'}
+                  />
+                </button>
+              ))}
+            </div>
+            <button
+              disabled={qrRating === null}
+              onClick={handleNext}
+              className="w-full py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight">¿Reflecter Wallet te ayuda a ahorrar o ganar dinero de forma única?</h3>
+            <div className="space-y-3">
+              {['Sí', 'No', 'Tal vez'].map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setHelpsSave(opt)}
+                  className={`w-full p-4 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${helpsSave === opt ? 'bg-white border-white text-black' : 'bg-white/5 border-white/10 text-white'}`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+            <button
+              disabled={helpsSave === null}
+              onClick={handleNext}
+              className="w-full py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+            <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight">¿Cuál es tu principal uso de la wallet?</h3>
+            <div className="space-y-3">
+              {['Pagos diarios', 'Cashback', 'Referidos', 'Ahorro'].map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setMainUsage(opt)}
+                  className={`w-full p-4 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${mainUsage === opt ? 'bg-white border-white text-black' : 'bg-white/5 border-white/10 text-white'}`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+            <button
+              disabled={mainUsage === null}
+              onClick={onComplete}
+              className="w-full py-4 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl disabled:opacity-50 transition-all shadow-xl shadow-emerald-600/20"
+            >
+              Finalizar y Ganar Puntos
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded = false, initialAuthView = 'login' }) => {
   const { user, signIn, signUp, signOut, getToken } = useFirebaseAuth();
   const { wallet, error: walletError, isLoading: isWalletLoading, refetch: refetchWallet } = useFetchWallet();
@@ -79,7 +239,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
   const { createWalletAsync } = useCreateWallet();
 
   const [authView, setAuthView] = useState<AuthView>(initialAuthView);
-  const [walletView, setWalletView] = useState<WalletView>('assets');
+  const [walletView, setWalletView] = useState<WalletView>('home');
   const [isLoading, setIsLoading] = useState(false);
   const [walletSession, setWalletSession] = useState<WalletSession | null>(null);
   const [selectedToken, setSelectedToken] = useState<'ETH' | 'STRK' | 'USDC'>('ETH');
@@ -109,6 +269,10 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
     postalCode: ''
   });
 
+  const [cryptoTab, setCryptoTab] = useState<'assets' | 'portfolio'>('assets');
+  const [isRequestingCard, setIsRequestingCard] = useState(false);
+  const [cardRequestStep, setCardRequestStep] = useState(0);
+
   const [isQrLoading, setIsQrLoading] = useState(true);
 
   // Form states
@@ -120,6 +284,21 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showQrFeatureModal, setShowQrFeatureModal] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [rewardPoints, setRewardPoints] = useState(0);
+  const [hasCompletedFeedback, setHasCompletedFeedback] = useState(false);
+  const [showCardFeatureModal, setShowCardFeatureModal] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+
+  // Mock deployment notifications
+  const deploymentNotifications = [
+    { id: 1, title: 'Generando claves de seguridad', status: 'completed', time: 'Ahora' },
+    { id: 2, title: 'Creando contrato inteligente', status: 'completed', time: 'Hace 1 min' },
+    { id: 3, title: 'Desplegando en Starknet Mainnet', status: 'completed', time: 'Hace 2 min' },
+    { id: 4, title: '¡Wallet lista para usar!', status: 'completed', time: 'Hace 3 min' }
+  ];
 
   useEffect(() => {
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
@@ -141,8 +320,8 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
         { facingMode: "environment" },
         config,
         (decodedText) => {
-          setSendToAddress(decodedText);
           setIsScanning(false);
+          setShowQrFeatureModal(true);
           html5QrCode?.stop().catch(console.error);
         },
         (errorMessage) => {
@@ -211,7 +390,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
       } else {
         // Validation: Passwords must match
         if (password !== confirmPassword) {
-          setError('Passwords do not match');
+          setError('Las contraseñas no coinciden');
           setIsLoading(false);
           return;
         }
@@ -336,32 +515,77 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center font-bold text-xs">RW</div>
-            <span className="text-xs font-bold uppercase tracking-widest text-white">
-              {profile.firstName ? `Hola ${profile.firstName} 👋` : 'Reflecter Wallet'}
-            </span>
+            {user ? (
+              <button
+                onClick={() => setWalletView('settings')}
+                className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors truncate max-w-[150px]"
+              >
+                {user.email}
+              </button>
+            ) : (
+              <span className="text-xs font-bold uppercase tracking-widest text-white">
+                Reflecter Wallet
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1">
-            {/* Close button - only show in modal mode (not embedded) */}
             {!isEmbedded && (
               <button
                 onClick={onClose}
                 className="p-2 text-zinc-300 hover:text-white transition-colors"
-                title="Close"
+                title="Cerrar"
               >
                 <X size={18} />
               </button>
             )}
-            {user && walletView !== 'settings' && (
+            {user && (
               <button
-                onClick={() => setWalletView('settings')}
-                className="p-2 text-zinc-300 hover:text-white transition-colors"
-                title="Settings"
+                onClick={() => setIsNotificationsOpen(true)}
+                className="p-2 text-zinc-300 hover:text-white transition-colors relative"
+                title="Notificaciones"
               >
-                <Settings size={18} />
+                <Bell size={18} />
+                <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-blue-500 rounded-full border border-black shadow-[0_0_5px_rgba(59,130,246,0.5)]"></div>
               </button>
             )}
           </div>
         </div>
+
+        {/* Notifications Panel Overlay */}
+        {isNotificationsOpen && (
+          <div className="absolute inset-0 z-[120] bg-black animate-in slide-in-from-right duration-300 flex flex-col">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-zinc-950 shrink-0">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Notificaciones</h3>
+              <button onClick={() => setIsNotificationsOpen(false)} className="p-2 text-zinc-400 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-2">Despliegue de Wallet</h4>
+              {deploymentNotifications.map((notif) => (
+                <div key={notif.id} className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-start gap-3">
+                  <div className="mt-0.5">
+                    <CheckCircle2 size={16} className="text-emerald-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-bold text-white mb-1">{notif.title}</div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Completado</span>
+                      <span className="text-[8px] text-zinc-600 uppercase font-bold tracking-widest">{notif.time}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="pt-6">
+                <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 mb-2">Historial</h4>
+                <div className="p-8 text-center bg-white/5 border border-white/5 border-dashed rounded-xl">
+                  <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">No tienes otras notificaciones en este momento.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden bg-black custom-scrollbar">
@@ -373,10 +597,10 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   {authView === 'register' ? <Sparkles size={32} /> : <Lock size={32} />}
                 </div>
                 <h3 className="text-xl font-bold mb-2 uppercase tracking-tight text-white">
-                  {authView === 'login' ? 'Welcome Back' : 'Create Wallet'}
+                  {authView === 'login' ? 'Bienvenido de nuevo' : 'Crear Billetera'}
                 </h3>
                 <p className="text-sm text-zinc-300 font-light">
-                  {authView === 'login' ? 'Access your Starknet assets' : 'Create your Starknet wallet without seed phrases'}
+                  {authView === 'login' ? 'Accede a tus activos en Starknet' : 'Crea tu billetera Starknet sin frases semilla'}
                 </p>
               </div>
 
@@ -399,13 +623,13 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold ml-1">Password</label>
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold ml-1">Contraseña</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
+                      placeholder="Contraseña"
                       className="w-full bg-white/5 border border-white/10 p-4 text-sm focus:border-white focus:outline-none transition-colors placeholder:text-zinc-600 text-white"
                     />
                     <button
@@ -420,13 +644,13 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
                 {authView === 'register' && (
                   <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold ml-1">Confirm Password</label>
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold ml-1">Confirmar Contraseña</label>
                     <div className="relative">
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm Password"
+                        placeholder="Confirmar Contraseña"
                         className="w-full bg-white/5 border border-white/10 p-4 text-sm focus:border-white focus:outline-none transition-colors placeholder:text-zinc-600 text-white"
                       />
                       <button
@@ -447,7 +671,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   {isLoading ? (
                     <div className="w-4 h-4 border-2 border-black border-t-transparent animate-spin rounded-full"></div>
                   ) : (
-                    authView === 'login' ? 'Sign In' : 'Create Account'
+                    authView === 'login' ? 'Iniciar Sesión' : 'Crear Billetera'
                   )}
                 </button>
               </form>
@@ -455,9 +679,9 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
               <div className="mt-8 pt-6 border-t border-white/5 text-center">
                 {authView === 'login' ? (
                   <p className="text-xs text-zinc-300 font-light">
-                    New to Reflecter Wallet?{' '}
+                    ¿Nuevo en Reflecter Wallet?{' '}
                     <button onClick={() => setAuthView('register')} className="text-white font-bold hover:underline">
-                      Create Wallet
+                      Crea tu Billetera
                     </button>
                   </p>
                 ) : (
@@ -465,7 +689,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     onClick={() => setAuthView('login')}
                     className="flex items-center justify-center gap-2 text-xs text-zinc-300 hover:text-white transition-colors mx-auto"
                   >
-                    <ChevronLeft size={14} /> Back to Sign In
+                    <ChevronLeft size={14} /> Volver a Iniciar Sesión
                   </button>
                 )}
               </div>
@@ -474,242 +698,139 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
             /* AUTHENTICATED VIEW - Diseño del Prototipo */
             <>
               {walletView === 'assets' && (
-                <div className="flex flex-col h-full">
-                  {/* Total Value Section - 2 filas según prototipo */}
-                  <div className="p-6 border-b border-white/10">
-                    {/* Fila 1: TOTAL VALUE + Network Indicator */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Total Value</div>
-                        <button
-                          onClick={() => {
-                            // Force refetch balances - hooks will automatically update
-                            window.location.reload();
-                          }}
-                          className="p-1 text-zinc-500 hover:text-white transition-colors"
-                          title="Refresh balances"
-                        >
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="px-2 py-0.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[7px] font-bold uppercase tracking-widest rounded-full">
-                        <span className="flex items-center gap-1">
-                          <div className="w-1 h-1 rounded-full animate-pulse bg-emerald-500"></div>
-                          MAINNET NETWORK
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Fila 2: Balance + Porcentaje con Toggle */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="text-4xl font-bold text-white">
-                          {isValueVisible ? `$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
-                        </div>
-                        <button
-                          onClick={() => setIsValueVisible(!isValueVisible)}
-                          className="p-2 text-zinc-500 hover:text-white transition-colors"
-                        >
-                          {isValueVisible ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                      </div>
+                <div className="flex flex-col h-full animate-in fade-in duration-500">
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex bg-white/5 p-1 rounded-xl mb-6">
                       <button
-                        onClick={() => {
-                          if (wallet?.publicKey) {
-                            const baseUrl = network === 'MAINNET' ? 'https://starkscan.co' : 'https://sepolia.starkscan.co';
-                            window.open(`${baseUrl}/contract/${formatStarknetAddress(wallet.publicKey)}`, '_blank');
-                          }
-                        }}
-                        disabled={!wallet?.publicKey}
-                        className="text-xs text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                        title="View on Starkscan"
+                        onClick={() => setCryptoTab('assets')}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${cryptoTab === 'assets' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-500 hover:text-white'}`}
                       >
-                        {totalValue > 0 ? 'Live' : 'Live'}
-                        <ExternalLink size={10} />
-                      </button>
-                    </div>
-                  </div>
-
-
-                  {/* Action Buttons Row 1: Send, Receive */}
-                  <div className="grid grid-cols-2 gap-2 p-3 border-b border-white/10">
-                    <button
-                      onClick={handleInitSend}
-                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
-                    >
-                      <ArrowUp size={18} className="text-white" />
-                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Send</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsQrLoading(true);
-                        setWalletView('receive');
-                      }}
-                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
-                    >
-                      <ArrowDown size={18} className="text-white" />
-                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Receive</span>
-                    </button>
-                  </div>
-
-                  {/* Dashboard Tabs: Assets and Transactions */}
-                  <div className="flex-1">
-                    <div className="px-4 pt-4 grid grid-cols-2 border-b border-white/5">
-                      <button
-                        onClick={() => setActiveDashboardTab('assets')}
-                        className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'assets' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
-                      >
-                        Assets
-                        {activeDashboardTab === 'assets' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
+                        Activos
                       </button>
                       <button
-                        onClick={() => setActiveDashboardTab('transactions')}
-                        className={`text-[9px] uppercase tracking-widest font-bold pb-3 whitespace-nowrap relative transition-colors flex justify-center ${activeDashboardTab === 'transactions' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
+                        onClick={() => setCryptoTab('portfolio')}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${cryptoTab === 'portfolio' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-zinc-500 hover:text-white'}`}
                       >
-                        Transactions
-                        {activeDashboardTab === 'transactions' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>}
+                        Portafolio
                       </button>
                     </div>
 
-                    <div className="p-4">
-                      {activeDashboardTab === 'assets' && (
-                        <div className="space-y-2">
-                          {/* Asset rows remain same... */}
-                          <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                <TokenIcon
-                                  src="https://cryptologos.cc/logos/ethereum-eth-logo.png"
-                                  alt="ETH"
-                                  fallback="Ξ"
-                                />
-                              </div>
-                              <div>
-                                <div className="text-sm font-bold text-white">Ethereum</div>
-                                <div className="text-xs text-zinc-400">
-                                  {ethBalance} ETH
-                                </div>
-                              </div>
+                    {cryptoTab === 'assets' ? (
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] ml-1 mb-4">Activos Disponibles</h4>
+                        {/* ETH Asset */}
+                        <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/10">
+                              <TokenIcon src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH" fallback="Ξ" size="w-6 h-6" />
                             </div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-white">
-                                ${ethValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </div>
-                              <div className="text-[10px] text-zinc-500">
-                                ${prices.ETH.toLocaleString()} / unit
-                              </div>
+                            <div>
+                              <div className="text-sm font-black text-white uppercase tracking-tight">Ethereum</div>
+                              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{ethBalance} ETH</div>
                             </div>
                           </div>
-
-                          <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                <TokenIcon
-                                  src="https://cryptologos.cc/logos/starknet-token-strk-logo.png"
-                                  alt="STRK"
-                                  fallback="S"
-                                />
-                              </div>
-                              <div>
-                                <div className="text-sm font-bold text-white">Starknet</div>
-                                <div className="text-xs text-zinc-400">
-                                  {strkBalance} STRK
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-white">
-                                ${strkValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </div>
-                              <div className="text-[10px] text-zinc-500">
-                                ${prices.STRK.toLocaleString()} / unit
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                <TokenIcon
-                                  src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
-                                  alt="USDC"
-                                  fallback="$"
-                                />
-                              </div>
-                              <div>
-                                <div className="text-sm font-bold text-white">USD Coin</div>
-                                <div className="text-xs text-zinc-400">
-                                  {usdcBalance} USDC
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-sm font-bold text-white">
-                                ${usdcValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </div>
-                              <div className="text-[10px] text-zinc-500">
-                                Stablecoin
-                              </div>
-                            </div>
+                          <div className="text-right">
+                            <div className="text-sm font-black text-white">${ethValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                            <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">${prices.ETH.toLocaleString()}</div>
                           </div>
                         </div>
-                      )}
-
-                      {activeDashboardTab === 'transactions' && (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                          <Receipt size={32} className="text-zinc-600 mb-4" />
-                          <h4 className="text-sm font-bold text-white uppercase tracking-tight mb-2">Transactions</h4>
-                          <p className="text-[10px] text-zinc-500 max-w-[200px]">
-                            Advanced transaction history and tracking feature is coming soon.
-                          </p>
+                        {/* STRK Asset */}
+                        <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-xl flex items-center justify-center text-purple-400 border border-purple-500/10">
+                              <TokenIcon src="https://cryptologos.cc/logos/starknet-strk-logo.png" alt="STRK" fallback="S" size="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-black text-white uppercase tracking-tight">Starknet</div>
+                              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{strkBalance} STRK</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-black text-white">${strkValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                            <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">${prices.STRK.toLocaleString()}</div>
+                          </div>
                         </div>
-                      )}
-                    </div>
+                        {/* USDC Asset */}
+                        <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-teal-500/10 to-teal-600/10 rounded-xl flex items-center justify-center text-teal-400 border border-teal-500/10">
+                              <TokenIcon src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" alt="USDC" fallback="$" size="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-black text-white uppercase tracking-tight">USD Coin</div>
+                              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{usdcBalance} USDC</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-black text-white">${usdcValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                            <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Stablecoin</div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="animate-in slide-in-from-right duration-300">
+                        <div className="p-8 bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-3xl mb-6">
+                          <h4 className="text-[10px] uppercase tracking-[0.4em] text-zinc-500 font-black mb-4">Portafolio Total</h4>
+                          <div className="text-4xl font-black text-white tracking-tighter mb-2">
+                            ${isValueVisible ? totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '••••••'}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
+                            <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Actualizado En Vivo</span>
+                          </div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+                          <TrendingUp size={24} className="mx-auto text-zinc-700 mb-3" />
+                          <h5 className="text-[10px] font-black text-white uppercase tracking-widest mb-1">Análisis de Rendimiento</h5>
+                          <p className="text-[9px] text-zinc-500 uppercase tracking-widest leading-relaxed">Analíticas detalladas próximamente en la siguiente actualización.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
+
+
               {walletView === 'settings' && (
                 <div className="p-6">
                   <button
-                    onClick={() => setWalletView('assets')}
+                    onClick={() => setWalletView('home')}
                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
                   >
-                    <ChevronLeft size={14} /> Back to Dashboard
+                    <ChevronLeft size={14} /> Volver al Inicio
                   </button>
 
                   <div className="space-y-6">
                     {/* Network Section - Simplified for Mainnet only */}
                     <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Network</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Red</h3>
                       <div className="p-4 bg-green-400/5 border border-green-400/20 rounded-lg flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Globe size={16} className="text-green-400" />
                           <div>
                             <div className="text-xs font-bold text-white uppercase tracking-widest">Starknet Mainnet</div>
-                            <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Production Network</div>
+                            <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Red de Producción</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                          <span className="text-[9px] font-black text-green-400 uppercase tracking-widest">Active</span>
+                          <span className="text-[9px] font-black text-green-400 uppercase tracking-widest">Activa</span>
                         </div>
                       </div>
                     </div>
 
                     {/* System Health Section */}
                     <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">System Health</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Estado del Sistema</h3>
                       <div className="space-y-3">
                         <div className="p-4 bg-white/5 border border-white/10">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">Auth Session</span>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Sesión Auth</span>
                             </div>
-                            <span className="text-xs text-emerald-500">✓ Connected</span>
+                            <span className="text-xs text-emerald-500">✓ Conectado</span>
                           </div>
                           <div className="text-[10px] text-zinc-400 truncate">{user?.email}</div>
                         </div>
@@ -718,10 +839,10 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <div className={`w-2 h-2 rounded-full ${wallet ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">Wallet Status</span>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Estado de Wallet</span>
                             </div>
                             <span className={`text-xs ${wallet ? 'text-emerald-500' : 'text-amber-500'}`}>
-                              {wallet ? '✓ Activated' : '○ Inactive'}
+                              {wallet ? '✓ Activada' : '○ Inactiva'}
                             </span>
                           </div>
                           {wallet && (
@@ -735,18 +856,18 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">Infrastructure</span>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Infraestructura</span>
                             </div>
-                            <span className="text-xs text-emerald-500">✓ Online</span>
+                            <span className="text-xs text-emerald-500">✓ En Línea</span>
                           </div>
-                          <div className="text-[10px] text-zinc-400">Starknet Mainnet Gateway Ready</div>
+                          <div className="text-[10px] text-zinc-400">Gateway Starknet Mainnet Listo</div>
                         </div>
                       </div>
                     </div>
 
                     {/* Explorer Section */}
                     <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Explorer</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Explorador</h3>
                       <button
                         onClick={() => {
                           if (wallet?.publicKey) {
@@ -757,32 +878,32 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         className="w-full flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-white/5 transition-all text-white text-xs uppercase tracking-widest font-bold"
                       >
                         <ExternalLink size={14} />
-                        View Address Activity
+                        Ver Actividad en Starkscan
                       </button>
                     </div>
 
                     {/* Profile Section */}
                     <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Profile</h3>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Perfil</h3>
                       <div className="p-4 bg-white/5 border border-white/10 space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">First Name</label>
+                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Nombre</label>
                             <input
                               type="text"
                               value={profile.firstName}
                               onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                              placeholder="Name"
+                              placeholder="Nombre"
                               className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Last Name</label>
+                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Apellido</label>
                             <input
                               type="text"
                               value={profile.lastName}
                               onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                              placeholder="Surname"
+                              placeholder="Apellido"
                               className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                             />
                           </div>
@@ -795,7 +916,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                       onClick={handleLogout}
                       className="w-full p-4 bg-red-950/20 border border-red-500/30 text-red-500 text-xs uppercase tracking-widest hover:bg-red-950/30 transition-all flex items-center justify-center gap-2 font-bold"
                     >
-                      <LogOut size={14} /> Terminate Session
+                      <LogOut size={14} /> Cerrar Sesión
                     </button>
                   </div>
                 </div>
@@ -804,13 +925,13 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
               {walletView === 'send' && (
                 <div className="p-6 animate-in fade-in slide-in-from-right duration-300">
                   <button
-                    onClick={() => setWalletView('assets')}
+                    onClick={() => setWalletView('home')}
                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
                   >
-                    <ChevronLeft size={14} /> Back to Assets
+                    <ChevronLeft size={14} /> Volver al Inicio
                   </button>
 
-                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Send Assets</h2>
+                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Enviar Activos</h2>
 
                   <div className="space-y-4">
                     <div className="relative">
@@ -833,8 +954,8 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                           <span className="font-bold">{selectedToken}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-zinc-400">
-                            BALANCE: <TokenBalanceDisplay token={selectedToken} walletPublicKey={wallet?.publicKey} />
+                          <span className="text-xs text-zinc-400 font-bold uppercase tracking-widest">
+                            SALDO: <TokenBalanceDisplay token={selectedToken} walletPublicKey={wallet?.publicKey} />
                           </span>
                           <ChevronLeft size={16} className={`transition-transform ${isTokenDropdownOpen ? '-rotate-90' : 'rotate-90'}`} />
                         </div>
@@ -876,7 +997,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     </div>
 
                     <div>
-                      <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold mb-2 block">To Address</label>
+                      <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold mb-2 block">Dirección de Destino</label>
                       <div className="relative">
                         <input
                           type="text"
@@ -1030,7 +1151,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
                         }`}
                     >
-                      {sendAssetsHook.isLoading ? 'Processing...' : 'Confirm Transaction'}
+                      {sendAssetsHook.isLoading ? 'Procesando...' : 'Confirmar Transacción'}
                     </button>
                   </div>
                 </div>
@@ -1039,21 +1160,21 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
               {walletView === 'receive' && (
                 <div className="p-6 animate-in fade-in slide-in-from-right duration-300 h-full flex flex-col">
                   <button
-                    onClick={() => setWalletView('assets')}
+                    onClick={() => setWalletView('home')}
                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
                   >
-                    <ChevronLeft size={14} /> Back to Assets
+                    <ChevronLeft size={14} /> Volver al Inicio
                   </button>
 
-                  <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight text-center">Receive</h2>
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold text-center mb-8">Starknet Mainnet Only</p>
+                  <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight text-center">Recibir</h2>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold text-center mb-8">Solo Starknet Mainnet</p>
 
                   <div className="flex flex-col items-center flex-1">
                     <div className="w-56 h-56 bg-white p-4 mb-8 flex items-center justify-center relative rounded-2xl shadow-[0_0_50px_rgba(255,255,255,0.05)]">
                       {isQrLoading && (
                         <div className="absolute inset-0 bg-white flex flex-col items-center justify-center gap-3 z-10 rounded-2xl">
                           <div className="w-10 h-10 border-2 border-zinc-100 border-t-black animate-spin rounded-full"></div>
-                          <span className="text-[9px] font-black text-black uppercase tracking-widest animate-pulse">Generating</span>
+                          <span className="text-[9px] font-black text-black uppercase tracking-widest animate-pulse">Generando</span>
                         </div>
                       )}
                       <img
@@ -1066,7 +1187,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
                     <div className="w-full space-y-4">
                       <div>
-                        <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-black mb-3 text-center">Your Deposit Address</div>
+                        <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-black mb-3 text-center">Tu Dirección de Depósito</div>
                         <div className="p-4 bg-white/5 border border-white/10 text-[11px] text-white break-all text-center font-mono rounded-lg">
                           {formatStarknetAddress(wallet?.publicKey || '0x0')}
                         </div>
@@ -1079,11 +1200,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         }}
                         className="w-full py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-lg"
                       >
-                        <Copy size={16} /> Copy Address
+                        <Copy size={16} /> Copiar Dirección
                       </button>
 
                       <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest text-center px-4 leading-relaxed">
-                        Send only STARKNET (ETH, STRK, USDC) assets to this address. Sending other assets may result in permanent loss.
+                        Envía solo activos de STARKNET (ETH, STRK, USDC) a esta dirección. El envío de otros activos puede resultar en una pérdida permanente.
                       </p>
                     </div>
                   </div>
@@ -1093,46 +1214,653 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
               {walletView === 'transactions' && (
                 <div className="p-6 animate-in fade-in slide-in-from-right duration-300">
                   <button
-                    onClick={() => setWalletView('assets')}
+                    onClick={() => setWalletView('home')}
                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
                   >
-                    <ChevronLeft size={14} /> Back to Assets
+                    <ChevronLeft size={14} /> Volver al Inicio
                   </button>
 
-                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Transactions</h2>
+                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Transacciones</h2>
 
                   <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
                     <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-zinc-700">
                       <Receipt size={40} />
                     </div>
                     <div className="space-y-2">
-                      <h4 className="text-sm font-bold text-white uppercase tracking-widest">History Coming Soon</h4>
+                      <h4 className="text-sm font-bold text-white uppercase tracking-widest">Historial Próximamente</h4>
                       <p className="text-[10px] text-zinc-500 uppercase tracking-widest leading-relaxed max-w-[220px]">
-                        Advanced on-chain transaction tracking is under development for Mainnet.
+                        El seguimiento avanzado de transacciones en cadena está en desarrollo para Mainnet.
                       </p>
                     </div>
                     <button
-                      onClick={() => setWalletView('assets')}
+                      onClick={() => setWalletView('home')}
                       className="px-6 py-3 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-colors"
                     >
-                      Back to Dashboard
+                      Ir al Inicio
                     </button>
                   </div>
+                </div>
+              )}
+
+              {walletView === 'home' && (
+                <div className="flex flex-col h-full animate-in fade-in duration-500">
+                  <div className="p-6 border-b border-white/10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Valor Total</div>
+                        <button
+                          onClick={() => refetchWallet()}
+                          className="p-1 text-zinc-500 hover:text-white transition-colors"
+                          title="Actualizar saldos"
+                        >
+                          <RefreshCw size={12} />
+                        </button>
+                      </div>
+                      <div className="px-2 py-0.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[7px] font-black uppercase tracking-widest rounded-full">
+                        <span className="flex items-center gap-1">
+                          <div className="w-1 h-1 rounded-full animate-pulse bg-emerald-500"></div>
+                          RED MAINNET
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="text-4xl font-black text-white tracking-tighter">
+                          {isValueVisible ? `$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
+                        </div>
+                        <button
+                          onClick={() => setIsValueVisible(!isValueVisible)}
+                          className="p-2 text-zinc-500 hover:text-white transition-colors"
+                        >
+                          {isValueVisible ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (wallet?.publicKey) {
+                            window.open(`https://starkscan.co/contract/${formatStarknetAddress(wallet.publicKey)}`, '_blank');
+                          }
+                        }}
+                        className="text-[10px] font-black text-zinc-500 hover:text-white transition-colors flex items-center gap-1 uppercase tracking-widest"
+                      >
+                        En Vivo <ExternalLink size={10} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Primary Grid Actions */}
+                  <div className="grid grid-cols-2 gap-3 p-4">
+                    <button
+                      onClick={handleInitSend}
+                      className="p-4 bg-white/5 border border-white/10 flex flex-col items-center gap-3 hover:bg-white/10 transition-all group rounded-xl"
+                    >
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform border border-blue-500/10">
+                        <ArrowUp size={20} />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white">Enviar</span>
+                    </button>
+                    <button
+                      onClick={() => setWalletView('receive')}
+                      className="p-4 bg-white/5 border border-white/10 flex flex-col items-center gap-3 hover:bg-white/10 transition-all group rounded-xl"
+                    >
+                      <div className="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform border border-purple-500/10">
+                        <ArrowDown size={20} />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white">Recibir</span>
+                    </button>
+                  </div>
+
+                  {/* Marketing / Feedback Section */}
+                  <div className="px-4 mb-4">
+                    <div className="p-6 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-white/10 rounded-3xl relative overflow-hidden group hover:border-white/30 transition-all">
+                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <MessageSquare size={48} />
+                      </div>
+                      <div className="relative z-10 grid grid-cols-2 gap-4 items-center">
+                        {/* Left Column: Title & Subtitle */}
+                        <div>
+                          <h4 className="text-[10px] font-black text-white uppercase tracking-widest mb-1">Tu opinión importa</h4>
+                          <p className="text-[9px] text-zinc-400 uppercase font-bold tracking-widest leading-relaxed">
+                            Ayúdanos a mejorar. Danos tu feedback y obtén beneficios exclusivos.
+                          </p>
+                        </div>
+
+                        {/* Right Column: Button */}
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => setIsFeedbackModalOpen(true)}
+                            className="px-4 py-2 bg-white text-black text-[8px] font-black uppercase tracking-widest rounded-lg hover:bg-zinc-200 transition-all shadow-lg flex items-center gap-2"
+                          >
+                            <MessageSquare size={12} /> Comenzar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Portfolio Crypto Summary Div */}
+                  <div className="px-4 mb-6">
+                    <div className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl grid grid-cols-2 gap-4">
+                      {/* Left Column: Total Value */}
+                      <div className="flex flex-col justify-center border-r border-white/5 pr-4">
+                        <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Mi Portafolio</h4>
+                        <span className="text-xl font-black text-white">${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      </div>
+
+                      {/* Right Column: Crypto Icons & Navigation */}
+                      <div className="flex items-center justify-between pl-4">
+                        <div className="flex -space-x-2">
+                          <div className="w-8 h-8 rounded-full bg-zinc-900 border-2 border-black flex items-center justify-center overflow-hidden">
+                            <TokenIcon src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH" fallback="Ξ" size="w-5 h-5" />
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-zinc-900 border-2 border-black flex items-center justify-center overflow-hidden">
+                            <TokenIcon src="https://www.starknet.io/assets/starknet-logo.svg" alt="STRK" fallback="S" size="w-5 h-5" />
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-zinc-900 border-2 border-black flex items-center justify-center overflow-hidden">
+                            <TokenIcon src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" alt="USDC" fallback="$" size="w-5 h-5" />
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setWalletView('assets');
+                            setCryptoTab('portfolio');
+                          }}
+                          className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center transition-all group"
+                        >
+                          <ChevronLeft className="rotate-180 text-white group-hover:translate-x-0.5 transition-transform" size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div className="p-6 pt-0 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">Actividad Reciente</h3>
+                      <button
+                        onClick={() => setWalletView('transactions')}
+                        className="text-[8px] font-black text-blue-500 uppercase tracking-widest hover:underline"
+                      >
+                        Ver Todo
+                      </button>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 p-4 flex items-center justify-center py-12 rounded-xl border-dashed">
+                      <div className="text-center">
+                        <Receipt size={28} className="mx-auto text-zinc-800 mb-3" />
+                        <p className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Sin transacciones aún</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {walletView === 'miniapps' && (
+                <div className="p-6 animate-in fade-in duration-500 flex flex-col h-full">
+                  <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Mini-Apps</h2>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold mb-8">Ecosistema de Aplicaciones</p>
+
+                  <div className="flex-1 space-y-4">
+                    {[
+                      { name: 'Motor de Intercambio', desc: 'Mejores tasas en todo Starknet', icon: <RefreshCw size={18} /> },
+                      { name: 'Centro de Préstamos', desc: 'Pide prestado y presta con facilidad', icon: <Database size={18} /> },
+                      { name: 'Galería NFT', desc: 'Gestiona tus coleccionables digitales', icon: <LayoutGrid size={18} /> }
+                    ].map((app, i) => (
+                      <div key={i} className="p-4 bg-white/5 border border-white/10 flex items-center gap-4 opacity-40 grayscale transition-all">
+                        <div className="w-10 h-10 bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-600">
+                          {app.icon}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{app.name}</h4>
+                          <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">{app.desc}</p>
+                        </div>
+                        <div className="ml-auto">
+                          <span className="text-[7px] font-black text-zinc-700 border border-white/5 px-1.5 py-0.5 uppercase">Inactiva</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-auto p-4 bg-zinc-950/50 border border-white/5 rounded-lg">
+                    <p className="text-[8px] text-zinc-600 uppercase tracking-widest leading-relaxed text-center font-bold">
+                      Entorno de Desarrollo Aislado<br />
+                      <span className="text-blue-500/50">Implementación de Puente Pendiente</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {walletView === 'card' && (
+                <div className="flex flex-col h-full animate-in fade-in duration-500 overflow-y-auto custom-scrollbar">
+                  {cardRequestStep === 1 ? (
+                    <div className="p-6">
+                      <button
+                        onClick={() => setCardRequestStep(0)}
+                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all mb-8"
+                      >
+                        <ChevronLeft size={16} /> Volver
+                      </button>
+                      <h2 className="text-2xl font-black text-white mb-8 uppercase tracking-tight">Escoge tu tarjeta</h2>
+
+                      <div className="space-y-6">
+                        <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col gap-6 group opacity-70">
+                          <div className="flex gap-4">
+                            <div className="w-20 h-28 bg-gradient-to-br from-blue-500/50 to-purple-600/50 rounded-xl relative overflow-hidden shrink-0 shadow-2xl grayscale-[0.5]">
+                              <div className="absolute inset-x-0 bottom-0 p-2 text-white/50 font-bold text-[8px]">RW VIRTUAL</div>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-black text-white uppercase tracking-widest">Tarjeta Virtual</h4>
+                              <p className="text-[9px] text-zinc-500 uppercase tracking-widest leading-relaxed">Instantánea, prepaga y gratuita. Con cashback en todas tus compras.</p>
+                            </div>
+                          </div>
+                          <button
+                            disabled
+                            className="w-full py-4 bg-zinc-800 text-zinc-500 text-[10px] font-black uppercase tracking-widest rounded-xl cursor-not-allowed"
+                          >
+                            Próximamente
+                          </button>
+                        </div>
+
+                        <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col gap-6 group opacity-50">
+                          <div className="flex gap-4">
+                            <div className="w-20 h-28 bg-gradient-to-br from-zinc-700 to-zinc-900 rounded-xl relative overflow-hidden shrink-0 grayscale shadow-2xl">
+                              <div className="absolute inset-x-0 bottom-0 p-2 text-zinc-400 font-bold text-[8px]">RW FISICA</div>
+                            </div>
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-black text-white uppercase tracking-widest">Tarjeta Física</h4>
+                              <p className="text-[9px] text-zinc-500 uppercase tracking-widest leading-relaxed">Prepaga y gratuita. Recibe cashback en Bitcoin en todas tus compras.</p>
+                            </div>
+                          </div>
+                          <button className="w-full py-4 bg-zinc-800 text-zinc-500 text-[10px] font-black uppercase tracking-widest rounded-xl cursor-not-allowed">Proximamente</button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : cardRequestStep === 2 ? (
+                    <div className="p-6 flex flex-col items-center justify-center h-full text-center space-y-6 animate-in zoom-in duration-300">
+                      <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-4">
+                        <ShieldCheck size={40} />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">¡Solicitud Exitosa!</h2>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-widest leading-relaxed max-w-[240px] mx-auto">
+                          Tu Reflecter Card Virtual está siendo procesada. Recibirás una notificación en cuanto esté lista para usar.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setCardRequestStep(0)}
+                        className="px-8 py-4 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all shadow-xl shadow-white/5"
+                      >
+                        Entendido
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="p-6 flex items-center justify-between shrink-0">
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tight">Tarjetas</h2>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setCardRequestStep(1)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/20 transition-all"
+                          >
+                            <Plus size={14} /> Pedir
+                          </button>
+                          <button
+                            onClick={() => setWalletView('settings')}
+                            className="p-2 bg-white/5 border border-white/10 rounded-full text-white"
+                          >
+                            <Settings size={14} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="px-6 space-y-4 pb-12">
+                        {/* Status Card */}
+                        <div className="p-6 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-3xl space-y-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg relative overflow-hidden border border-white/10 shadow-lg">
+                                <div className="absolute inset-0 bg-black/20" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-black text-white uppercase tracking-widest">Reflecter Card</h4>
+                                <div className="text-xs font-mono text-zinc-500 tracking-widest">**** **** **** ****</div>
+                                <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 bg-zinc-500/10 text-zinc-500 text-[8px] font-black uppercase tracking-widest rounded-full border border-zinc-500/20">
+                                  <div className="w-1 h-1 bg-zinc-500 rounded-full" /> Próximamente
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setShowCardFeatureModal(true)}
+                              className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-all"
+                            >
+                              <Play size={18} fill="white" />
+                            </button>
+                          </div>
+
+                          <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Moneda de pago</span>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-lg">
+                                <span className="text-[10px] font-black text-white">USDC</span>
+                                <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                                  <TokenIcon src="https://cryptologos.cc/logos/usd-coin-usdc-logo.png" alt="USDC" fallback="$" size="w-2 h-2" />
+                                </div>
+                              </div>
+                              <ChevronLeft className="rotate-180 text-zinc-600" size={12} />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Analysis Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-5 bg-white/5 border border-white/10 rounded-3xl space-y-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Cashback Histórico</span>
+                              <ChevronLeft className="rotate-180 text-zinc-700" size={10} />
+                            </div>
+                            <div>
+                              <div className="text-sm font-black text-white uppercase tracking-tight">$0.00</div>
+                              <div className="text-[8px] text-zinc-600 uppercase font-black tracking-widest">0.00 STRK</div>
+                            </div>
+                          </div>
+                          <div className="p-5 bg-white/5 border border-white/10 rounded-3xl space-y-4">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Análisis de Gastos</span>
+                              <ChevronLeft className="rotate-180 text-zinc-700" size={10} />
+                            </div>
+                            <div>
+                              <div className="text-sm font-black text-white uppercase tracking-tight">$0.00</div>
+                              <div className="text-[8px] text-zinc-600 uppercase font-black tracking-widest">Enero 2024</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Reward Points Section */}
+                        <div className="p-6 bg-gradient-to-br from-blue-600/10 to-purple-600/10 border border-white/10 rounded-3xl space-y-4 relative overflow-hidden">
+                          <div className="absolute top-0 right-0 p-4 opacity-5">
+                            <Star size={40} />
+                          </div>
+                          <div className="flex items-center justify-between relative z-10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400">
+                                <Gift size={16} />
+                              </div>
+                              <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Puntos de Recompensa</h4>
+                            </div>
+                            <div className="text-xl font-black text-white">{rewardPoints} PTS</div>
+                          </div>
+                          <p className="text-[8px] text-zinc-500 uppercase tracking-widest leading-relaxed font-bold">
+                            Completa misiones y feedback para ganar puntos canjeables por beneficios.
+                          </p>
+                          <button
+                            onClick={() => setShowReferralModal(true)}
+                            className="w-full py-2 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all"
+                          >
+                            Ganar más puntos
+                          </button>
+                        </div>
+
+                        {/* Recent Movements */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between px-1">
+                            <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Movimientos</h5>
+                            <ChevronLeft className="rotate-180 text-zinc-700" size={12} />
+                          </div>
+                          <div className="p-8 bg-white/5 border border-white/10 border-dashed rounded-3xl flex flex-col items-center justify-center text-center gap-3">
+                            <ShieldCheck size={24} className="text-zinc-800 opacity-20" />
+                            <p className="text-[8px] text-zinc-600 uppercase tracking-[0.2em] font-black leading-relaxed">No se han detectado movimientos recientes con tu tarjeta.</p>
+                          </div>
+                        </div>
+
+                        {/* Footer Link */}
+                        <div className="pt-4 text-center">
+                          <button className="inline-flex items-center gap-2 text-[9px] font-black text-zinc-500 uppercase tracking-widest hover:text-white transition-all">
+                            Saber más sobre tarjetas <ExternalLink size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </>
           )}
         </div>
 
+        {/* Bottom Navigation */}
+        {user && (
+          <div className="bg-black border-t border-white/10 px-2 pb-6 pt-2 shrink-0 relative z-50">
+            <div className="flex items-center justify-around">
+              <button
+                onClick={() => setWalletView('home')}
+                className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${walletView === 'home' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+              >
+                <div className={`p-2 ${walletView === 'home' ? 'bg-white/5 rounded-xl' : ''}`}>
+                  <Home size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">Inicio</span>
+              </button>
+
+              <button
+                onClick={() => setWalletView('assets')}
+                className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${walletView === 'assets' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+              >
+                <div className={`p-2 ${walletView === 'assets' ? 'bg-white/5 rounded-xl' : ''}`}>
+                  <TrendingUp size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">Cripto</span>
+              </button>
+
+              {/* QR Floating Button */}
+              <div className="relative -top-6">
+                <button
+                  onClick={() => setIsScanning(true)}
+                  className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(59,130,246,0.4)] border-4 border-black hover:scale-110 active:scale-95 transition-all"
+                >
+                  <QrCode size={28} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setWalletView('miniapps')}
+                className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${walletView === 'miniapps' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+              >
+                <div className={`p-2 ${walletView === 'miniapps' ? 'bg-white/5 rounded-xl' : ''}`}>
+                  <LayoutGrid size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">Mini-Apps</span>
+              </button>
+
+              <button
+                onClick={() => setWalletView('card')}
+                className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${walletView === 'card' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+              >
+                <div className={`p-2 ${walletView === 'card' ? 'bg-white/5 rounded-xl' : ''}`}>
+                  <CreditCard size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">Tarjeta</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="p-4 bg-black border-t border-white/10 flex items-center justify-between text-[8px] text-zinc-600 uppercase tracking-[0.3em] font-black shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-1 h-1 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-            Mainnet Production
+            Producción Mainnet
           </div>
           <div>v1.1.0</div>
         </div>
-      </div>
+
+        {/* QR Feature Modal */}
+        {showQrFeatureModal && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setShowQrFeatureModal(false)}></div>
+            <div className="relative bg-zinc-900 border border-white/10 p-8 rounded-[2.5rem] max-w-[320px] text-center space-y-6 shadow-2xl overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white mx-auto shadow-lg shadow-blue-500/20 relative z-10">
+                <QrCode size={40} />
+              </div>
+              <div className="space-y-4 relative z-10">
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">Pagos por QR</h3>
+                <p className="text-[10px] text-zinc-400 uppercase tracking-[0.1em] font-bold leading-relaxed px-2">
+                  Esta función estará disponible próximamente. ¿Quieres ser de los primeros en usarla?
+                </p>
+                <div className="p-4 bg-white/5 rounded-2xl space-y-3 border border-white/5">
+                  <div className="flex items-center gap-2 justify-center text-emerald-400">
+                    <Gift size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Activa tu Cashback</span>
+                  </div>
+                  <p className="text-[9px] text-zinc-500 uppercase tracking-widest leading-relaxed font-bold">
+                    Recomienda a un amigo <br /> para crear su billetera fácil <br /> y activa tu cashback en cada pago.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowQrFeatureModal(false)}
+                className="w-full py-4 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all shadow-xl shadow-white/5 relative z-10"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Feedback Modal */}
+        {isFeedbackModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsFeedbackModalOpen(false)}></div>
+            <div className="relative bg-zinc-900 border border-white/10 p-8 rounded-[2.5rem] max-w-[340px] w-full shadow-2xl overflow-hidden min-h-[480px] flex flex-col">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+
+              {!hasCompletedFeedback ? (
+                <FeedbackForm
+                  onComplete={() => {
+                    setRewardPoints(prev => prev + 5);
+                    setHasCompletedFeedback(true);
+                  }}
+                  onClose={() => setIsFeedbackModalOpen(false)}
+                />
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 animate-in zoom-in duration-500">
+                  <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 shadow-xl shadow-emerald-500/10 border border-emerald-500/20">
+                    <CheckCircle2 size={40} />
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-black text-white uppercase tracking-tight">¡Gracias por tu Feedback!</h3>
+                    <p className="text-[11px] text-zinc-400 uppercase tracking-widest font-bold leading-relaxed px-4">
+                      Tus respuestas han sido procesadas correctamente. Has ganado:
+                    </p>
+                    <div className="inline-block px-6 py-3 bg-blue-500/20 border border-blue-500/30 rounded-2xl">
+                      <span className="text-2xl font-black text-blue-400">+5 Puntos</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsFeedbackModalOpen(false)}
+                    className="w-full py-4 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all shadow-xl shadow-white/5"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Card Feature Modal */}
+        {showCardFeatureModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowCardFeatureModal(false)}></div>
+            <div className="relative bg-zinc-900 border border-white/10 p-8 rounded-[2.5rem] max-w-[340px] w-full shadow-2xl overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+
+              <div className="flex flex-col items-center text-center space-y-6 relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center text-white shadow-xl shadow-purple-500/20">
+                  <Play size={32} fill="white" />
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight">Control de Tarjeta</h3>
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-widest font-bold leading-relaxed px-4">
+                    Esta funcionalidad estará disponible próximamente. Podrás pausar y reanudar tu tarjeta con un solo toque.
+                  </p>
+
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-[9px] text-zinc-500 uppercase tracking-widest leading-relaxed font-bold">
+                      Pronto podrás gestionar tu tarjeta con controles avanzados de seguridad y límites personalizados.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowCardFeatureModal(false)}
+                  className="w-full py-4 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all shadow-xl shadow-white/5"
+                >
+                  Entendido
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Referral Modal */}
+        {showReferralModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowReferralModal(false)}></div>
+            <div className="relative bg-zinc-900 border border-white/10 p-8 rounded-[2.5rem] max-w-[340px] w-full shadow-2xl overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+
+              <div className="flex flex-col items-center text-center space-y-6 relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-500/20">
+                  <Share2 size={32} />
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight">Gana Más Puntos</h3>
+                  <p className="text-[11px] text-zinc-400 uppercase tracking-widest font-bold leading-relaxed px-4">
+                    Comparte tu enlace de referido y gana puntos cada vez que un amigo cree su billetera.
+                  </p>
+
+                  <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 space-y-3">
+                    <div className="flex items-center gap-2 justify-center text-emerald-400">
+                      <Gift size={16} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">+10 Puntos por Referido</span>
+                    </div>
+                    <p className="text-[9px] text-zinc-400 uppercase tracking-widest leading-relaxed font-bold">
+                      Además, tu amigo también recibe 5 puntos de bienvenida al registrarse.
+                    </p>
+                  </div>
+
+                  {/* Referral Link */}
+                  <div className="w-full space-y-2">
+                    <label className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold">Tu Enlace de Referido</label>
+                    <div className="flex gap-2">
+                      <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-lg text-[10px] text-white font-mono truncate">
+                        {`reflecter.app/r/${user?.uid?.slice(0, 8) || 'xxxxxxxx'}`}
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://reflecter.app/r/${user?.uid || ''}`);
+                        }}
+                        className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all"
+                      >
+                        <Copy size={14} className="text-white" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowReferralModal(false)}
+                  className="w-full py-4 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20"
+                >
+                  Compartir Enlace
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div >
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
