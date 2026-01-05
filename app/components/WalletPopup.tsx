@@ -27,8 +27,6 @@ import { useNetwork } from '@/lib/hooks/useNetwork';
 import { useCreateWallet } from '@chipi-stack/nextjs';
 import { auth } from '@/lib/firebase/config';
 import { deriveEncryptKey } from '@/lib/utils/deriveEncryptKey';
-import VesuLending from '@/app/components/VesuLending';
-import { VesuExplorer } from '@/app/components/VesuExplorer';
 import NetworkSelector from '@/app/components/NetworkSelector';
 import { TokenBalanceDisplay } from '@/app/components/TokenBalanceDisplay';
 import { useTokenPrices } from '@/lib/hooks/useTokenPrices';
@@ -36,10 +34,9 @@ import { useTokenBalance } from '@/lib/hooks/useTokenBalance';
 import { useSendAssets } from '@/lib/hooks/useSendAssets';
 import { formatStarknetAddress } from '@/lib/utils/formatAddress';
 import { TransactionHistory } from '@/app/components/TransactionHistory';
-import { BotsTradingOrchestrator } from '@/app/components/BotsTradingOrchestrator';
 
 type AuthView = 'login' | 'register';
-type WalletView = 'assets' | 'lending' | 'apps' | 'trading' | 'send' | 'receive' | 'settings' | 'history';
+type WalletView = 'assets' | 'send' | 'receive' | 'settings' | 'history';
 
 // Token Icon Component with fallback
 const TokenIcon: React.FC<{ src: string; alt: string; fallback: string; size?: string }> = ({ src, alt, fallback, size = 'w-6 h-6' }) => {
@@ -470,31 +467,6 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     >
                       <ArrowDown size={18} className="text-white" />
                       <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Receive</span>
-                    </button>
-                  </div>
-
-                  {/* Action Buttons Row 2: Apps, Lending, Bots Trading */}
-                  <div className="grid grid-cols-3 gap-2 p-3 border-b border-white/10">
-                    <button
-                      onClick={() => setWalletView('apps')}
-                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
-                    >
-                      <Layers size={18} className="text-white" />
-                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Apps</span>
-                    </button>
-                    <button
-                      onClick={() => setWalletView('lending')}
-                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
-                    >
-                      <TrendingUp size={18} className="text-white" />
-                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Lending</span>
-                    </button>
-                    <button
-                      onClick={() => setWalletView('trading')}
-                      className="flex flex-col items-center gap-1 p-3 border border-white/10 hover:bg-white/5 transition-all"
-                    >
-                      <Sparkles size={18} className="text-white" />
-                      <span className="text-[9px] uppercase font-bold tracking-widest text-white text-center">Bots</span>
                     </button>
                   </div>
 
@@ -1081,36 +1053,6 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         Get Testnet Tokens <ExternalLink size={12} />
                       </button>
                     )}
-                  </div>
-                </div>
-              )}
-
-              {walletView === 'lending' && (
-                <VesuExplorer onBack={() => setWalletView('assets')} />
-              )}
-
-              {walletView === 'trading' && (
-                <BotsTradingOrchestrator
-                  onBack={() => setWalletView('assets')}
-                  isWalletView={true}
-                />
-              )}
-
-              {walletView === 'apps' && (
-                <div className="p-6">
-                  <button
-                    onClick={() => setWalletView('assets')}
-                    className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
-                  >
-                    <ChevronLeft size={14} /> Back to Assets
-                  </button>
-
-                  <div className="text-center py-12">
-                    <Layers size={48} className="mx-auto mb-4 text-zinc-600" />
-                    <h3 className="text-sm font-bold text-white mb-2 uppercase tracking-tight">Deployed Apps</h3>
-                    <p className="text-xs text-zinc-400">
-                      Your deployed applications will appear here
-                    </p>
                   </div>
                 </div>
               )}
