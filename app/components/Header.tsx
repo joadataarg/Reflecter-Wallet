@@ -11,7 +11,6 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const pathname = usePathname();
 
   const navLinks = [
@@ -37,7 +36,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
         top: offsetPosition,
         behavior: 'smooth'
       });
-      setIsMenuOpen(false);
     }
   };
 
@@ -69,66 +67,22 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="flex items-center gap-3 md:gap-8">
           <button
             onClick={() => onOpenWallet('login')}
-            className="group flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors"
+            className="group flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors"
           >
             LOGIN
           </button>
           <button
             onClick={() => onOpenWallet('register')}
-            className="px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 flex items-center gap-2 shadow-[0_4px_20px_rgba(255,255,255,0.05)]"
+            className="px-3 md:px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 flex items-center gap-2 shadow-[0_4px_20px_rgba(255,255,255,0.05)]"
           >
-            Create Wallet
+            <span className="hidden xs:inline">Create Wallet</span>
+            <span className="xs:hidden">Create</span>
           </button>
         </div>
-
-        {/* Mobile Toggle */}
-        <button
-          className="md:hidden p-2 text-zinc-400 transition-colors hover:text-white"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
       </nav>
-
-      {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 top-[56px] md:top-[64px] bg-black z-40 md:hidden transition-all duration-500 ease-in-out border-t border-white/[0.05] ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-        <div className="flex flex-col p-8 gap-6 items-center justify-start h-full overflow-y-auto pt-12">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              onClick={(e) => handleScroll(e, link.href)}
-              className="text-lg font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all py-2"
-            >
-              {link.label}
-            </a>
-          ))}
-
-          <div className="w-full h-px bg-white/5 my-4 shrink-0" />
-
-          <button
-            className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all flex items-center gap-2 py-4"
-            onClick={() => {
-              setIsMenuOpen(false);
-              onOpenWallet('login');
-            }}
-          >
-            LOGIN
-          </button>
-          <button
-            onClick={() => {
-              setIsMenuOpen(false);
-              onOpenWallet('register');
-            }}
-            className="w-full max-w-xs py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-[0_10px_40px_rgba(255,255,255,0.05)] shrink-0"
-          >
-            CREATE WALLET NOW
-          </button>
-        </div>
-      </div>
     </header>
   );
 };

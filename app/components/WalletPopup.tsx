@@ -114,8 +114,10 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
   // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -131,11 +133,8 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
       html5QrCode = new Html5Qrcode("qr-reader");
       const config = {
         fps: 10,
-        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const boxSize = Math.floor(minEdge * 0.75);
-          return { width: boxSize, height: boxSize };
-        }
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
       };
 
       html5QrCode.start(
@@ -210,6 +209,13 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
       if (authView === 'login') {
         await signIn(email, password);
       } else {
+        // Validation: Passwords must match
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setIsLoading(false);
+          return;
+        }
+
         // 1. Firebase Sign Up
         const firebaseUser = await signUp(email, password);
         if (!firebaseUser) throw new Error('Error al crear el usuario en Firebase.');
@@ -411,6 +417,28 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     </button>
                   </div>
                 </div>
+
+                {authView === 'register' && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold ml-1">Confirm Password</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm Password"
+                        className="w-full bg-white/5 border border-white/10 p-4 text-sm focus:border-white focus:outline-none transition-colors placeholder:text-zinc-600 text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -1119,6 +1147,27 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: rgba(255, 255, 255, 0.2);
+        }
+        #qr-reader video {
+          object-fit: cover !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+        #qr-reader__scan_region {
+           aspect-ratio: 1/1 !important;
+           width: 100% !important;
+           height: 100% !important;
+        }
+        #qr-reader__scan_region img {
+          display: none !important;
+        }
+        #qr-reader__dashboard {
+          display: none !important;
+        }
+        #qr-reader canvas {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
         }
       `}</style>
     </>
