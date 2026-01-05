@@ -16,11 +16,15 @@ import {
   ExternalLink,
   Copy,
   CheckCircle2,
-  Info,
-  Eye,
   EyeOff,
-  Receipt
+  Receipt,
+  QrCode,
+  Scan,
+  Globe,
+  Eye,
+  Info
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import { useFetchWallet } from '@/lib/hooks/useFetchWallet';
 import { useNetwork } from '@/lib/hooks/useNetwork';
@@ -111,6 +115,56 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  }, []);
+
+  // QR Scanner Logic
+  useEffect(() => {
+    let html5QrCode: Html5Qrcode | null = null;
+
+    if (isScanning) {
+      html5QrCode = new Html5Qrcode("qr-reader");
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          setSendToAddress(decodedText);
+          setIsScanning(false);
+          html5QrCode?.stop().catch(console.error);
+        },
+        (errorMessage) => {
+          // ignore scan errors
+        }
+      ).catch((err) => {
+        console.error("Error starting QR scanner", err);
+        setIsScanning(false);
+      });
+    }
+
+    return () => {
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(console.error);
+      }
+    };
+  }, [isScanning]);
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setSendToAddress(text);
+      }
+    } catch (err) {
+      console.error("Failed to read clipboard:", err);
+    }
+  };
 
   // Real-time Data: Prices and Balances
   const { prices } = useTokenPrices();
@@ -333,14 +387,22 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold ml-1">Password</label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-zinc-950 border border-white/10 p-4 text-sm focus:border-white focus:outline-none transition-colors placeholder:text-zinc-400 text-white"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                      className="w-full bg-white/5 border border-white/10 p-4 text-sm focus:border-white focus:outline-none transition-colors placeholder:text-zinc-600 text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
                 <button
                   type="submit"
@@ -429,7 +491,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         className="text-xs text-zinc-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                         title="View on Starkscan"
                       >
-                        {totalValue > 0 ? 'Live' : '0%'}
+                        {totalValue > 0 ? 'Live' : 'Live'}
                         <ExternalLink size={10} />
                       </button>
                     </div>
@@ -584,13 +646,70 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   </button>
 
                   <div className="space-y-6">
-                    {/* Network Section */}
+                    {/* Network Section - Simplified for Mainnet only */}
                     <div>
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Network</h3>
-                      <NetworkSelector />
+                      <div className="p-4 bg-green-400/5 border border-green-400/20 rounded-lg flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Globe size={16} className="text-green-400" />
+                          <div>
+                            <div className="text-xs font-bold text-white uppercase tracking-widest">Starknet Mainnet</div>
+                            <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Production Network</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                          <span className="text-[9px] font-black text-green-400 uppercase tracking-widest">Active</span>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* View Address Activity Button */}
+                    {/* System Health Section */}
+                    <div>
+                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">System Health</h3>
+                      <div className="space-y-3">
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Auth Session</span>
+                            </div>
+                            <span className="text-xs text-emerald-500">✓ Connected</span>
+                          </div>
+                          <div className="text-[10px] text-zinc-400 truncate">{user?.email}</div>
+                        </div>
+
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${wallet ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Wallet Status</span>
+                            </div>
+                            <span className={`text-xs ${wallet ? 'text-emerald-500' : 'text-amber-500'}`}>
+                              {wallet ? '✓ Activated' : '○ Inactive'}
+                            </span>
+                          </div>
+                          {wallet && (
+                            <div className="text-[10px] text-zinc-400 font-mono truncate">
+                              {wallet.publicKey.slice(0, 24)}...
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span className="text-xs font-bold text-white uppercase tracking-wider">Infrastructure</span>
+                            </div>
+                            <span className="text-xs text-emerald-500">✓ Online</span>
+                          </div>
+                          <div className="text-[10px] text-zinc-400">Starknet Mainnet Gateway Ready</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Explorer Section */}
                     <div>
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Explorer</h3>
                       <button
@@ -607,34 +726,18 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                       </button>
                     </div>
 
-                    {/* Active Session */}
-                    <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Active Session</h3>
-                      <div className="p-4 bg-white/5 border border-white/10">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
-                            <span className="text-xs">👤</span>
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold text-white">{user?.email}</div>
-                            <div className="text-xs text-zinc-400">Connected via Reflecter Wallet</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Profile Section */}
                     <div>
                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Profile</h3>
                       <div className="p-4 bg-white/5 border border-white/10 space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">First Name *</label>
+                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">First Name</label>
                             <input
                               type="text"
                               value={profile.firstName}
                               onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                              placeholder="Your first name"
+                              placeholder="Name"
                               className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                             />
                           </div>
@@ -644,104 +747,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                               type="text"
                               value={profile.lastName}
                               onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                              placeholder="Your last name"
+                              placeholder="Surname"
                               className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
                             />
                           </div>
                         </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">City</label>
-                          <input
-                            type="text"
-                            value={profile.city}
-                            onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                            placeholder="City"
-                            className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Province</label>
-                            <input
-                              type="text"
-                              value={profile.province}
-                              onChange={(e) => setProfile({ ...profile, province: e.target.value })}
-                              placeholder="Provincia"
-                              className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Cód. Postal</label>
-                            <input
-                              type="text"
-                              value={profile.postalCode}
-                              onChange={(e) => setProfile({ ...profile, postalCode: e.target.value })}
-                              placeholder="C.P."
-                              className="w-full bg-black/40 border border-white/10 p-2 text-xs focus:border-white focus:outline-none text-white transition-colors"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Staging / Logs Section */}
-                    <div>
-                      <h3 className="text-[10px] uppercase tracking-widest font-bold text-white mb-4">Staging Logs</h3>
-                      <div className="space-y-3">
-                        {/* Integration Status Cards */}
-                        <div className="p-4 bg-white/5 border border-white/10">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">Firebase Auth</span>
-                            </div>
-                            <span className="text-xs text-emerald-500">✓ Active</span>
-                          </div>
-                          <div className="text-[10px] text-zinc-400">User: {user?.email}</div>
-                        </div>
-
-                        <div className="p-4 bg-white/5 border border-white/10">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">Starknet {network}</span>
-                            </div>
-                            <span className="text-xs text-emerald-500">✓ Connected</span>
-                          </div>
-                          <div className="text-[10px] text-zinc-400">Network: {network}</div>
-                        </div>
-
-                        <div className="p-4 bg-white/5 border border-white/10">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${wallet ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">Wallet Session</span>
-                            </div>
-                            <span className={`text-xs ${wallet ? 'text-emerald-500' : 'text-amber-500'}`}>
-                              {wallet ? '✓ Activated' : '○ Inactive'}
-                            </span>
-                          </div>
-                          {walletSession && (
-                            <div className="text-[10px] text-zinc-400 font-mono truncate">
-                              {walletSession.publicKey.slice(0, 20)}...
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-4 bg-white/5 border border-white/10">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">ChipiPay SDK</span>
-                            </div>
-                            <span className="text-xs text-emerald-500">✓ Loaded</span>
-                          </div>
-                          <div className="text-[10px] text-zinc-400">Gasless transactions ready</div>
-                        </div>
-
-
                       </div>
                     </div>
 
@@ -757,7 +767,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
               )}
 
               {walletView === 'send' && (
-                <div className="p-6">
+                <div className="p-6 animate-in fade-in slide-in-from-right duration-300">
                   <button
                     onClick={() => setWalletView('assets')}
                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
@@ -771,7 +781,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     <div className="relative">
                       <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold mb-2 block">Token</label>
 
-                      {/* Dropdown Button - Vista Compacta */}
+                      {/* Dropdown Button */}
                       <button
                         onClick={() => setIsTokenDropdownOpen(!isTokenDropdownOpen)}
                         className="w-full p-4 bg-white/5 border border-white/10 text-white text-sm hover:border-white transition-colors flex items-center justify-between"
@@ -795,9 +805,9 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         </div>
                       </button>
 
-                      {/* Dropdown Menu - Vista Expandida */}
+                      {/* Dropdown Menu */}
                       {isTokenDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-white/10 z-50">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-white/10 z-50 shadow-2xl">
                           {(['ETH', 'STRK', 'USDC'] as const).map((token) => (
                             <button
                               key={token}
@@ -832,19 +842,56 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
                     <div>
                       <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold mb-2 block">To Address</label>
-                      <input
-                        type="text"
-                        value={sendToAddress}
-                        onChange={(e) => {
-                          setSendToAddress(e.target.value);
-                          setSendAddressError('');
-                        }}
-                        placeholder="0x..."
-                        className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white ${sendAddressError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
-                          }`}
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={sendToAddress}
+                          onChange={(e) => {
+                            setSendToAddress(e.target.value);
+                            setSendAddressError('');
+                          }}
+                          placeholder="0x..."
+                          className={`w-full bg-white/5 border p-4 text-sm focus:outline-none transition-colors placeholder:text-zinc-500 text-white pr-12 ${sendAddressError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-white'
+                            }`}
+                        />
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                          {isMobile ? (
+                            <button
+                              onClick={() => setIsScanning(true)}
+                              className="p-2 text-zinc-400 hover:text-white transition-colors"
+                              title="Scan QR"
+                            >
+                              <QrCode size={18} />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={handlePaste}
+                              className="px-3 py-1 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white transition-all shadow-sm"
+                            >
+                              Paste
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* QR Reader Modal/Overlay */}
+                      {isScanning && (
+                        <div className="fixed inset-0 z-[120] bg-black flex flex-col items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                          <div className="w-full max-w-sm mb-8 flex justify-between items-center">
+                            <h3 className="text-white font-black uppercase tracking-widest">Scan Address</h3>
+                            <button onClick={() => setIsScanning(false)} className="text-zinc-400 hover:text-white p-2">
+                              <X size={24} />
+                            </button>
+                          </div>
+                          <div id="qr-reader" className="w-full max-w-sm aspect-square bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.05)]"></div>
+                          <p className="mt-8 text-zinc-500 text-[10px] uppercase font-bold tracking-[0.2em] text-center max-w-[200px]">
+                            Center the QR code in the frame to scan
+                          </p>
+                        </div>
+                      )}
+
                       {sendAddressError && (
-                        <div className="flex items-center gap-1 mt-2 text-xs text-red-500">
+                        <div className="flex items-center gap-1 mt-2 text-[10px] text-red-500 font-bold uppercase tracking-widest">
                           <Info size={12} />
                           {sendAddressError}
                         </div>
@@ -854,8 +901,8 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-[10px] uppercase tracking-widest text-zinc-300 font-bold">Amount</label>
-                        <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-                          Balance: {selectedToken === 'ETH' ? ethBalance : selectedToken === 'STRK' ? strkBalance : usdcBalance} {selectedToken}
+                        <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+                          Available: <TokenBalanceDisplay token={selectedToken} walletPublicKey={wallet?.publicKey} /> {selectedToken}
                         </span>
                       </div>
                       <div className="relative mb-4">
@@ -874,33 +921,26 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                           onClick={() => {
                             const balance = selectedToken === 'ETH' ? ethBalance : selectedToken === 'STRK' ? strkBalance : usdcBalance;
                             const balanceNum = parseFloat(balance || '0');
-                            // Subtract estimated fee from balance
                             const estimatedFee = sendAssetsHook.estimatedGasPrice;
                             const maxAmount = Math.max(0, balanceNum - estimatedFee);
                             setSendAmount(maxAmount.toFixed(selectedToken === 'USDC' ? 6 : 18).replace(/\.?0+$/, ''));
                             setSendPercent(100);
                             setSendAmountError('');
                           }}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold uppercase tracking-widest text-white hover:text-zinc-300"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:text-zinc-300 transition-colors"
                         >
                           Max
                         </button>
                       </div>
-                      {sendAmountError && (
-                        <div className="flex items-center gap-1 mb-4 text-xs text-red-500">
-                          <Info size={12} />
-                          {sendAmountError}
-                        </div>
-                      )}
 
                       {/* Percentage Slider */}
                       <div className="space-y-3 mb-6">
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                        <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600">
                           <span>0%</span>
                           <span>25%</span>
                           <span>50%</span>
                           <span>75%</span>
-                          <span>100%</span>
+                          <span className="text-zinc-400">100%</span>
                         </div>
                         <input
                           type="range"
@@ -917,29 +957,32 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                             setSendAmount(amount.replace(/\.?0+$/, ''));
                             setSendAmountError('');
                           }}
-                          className="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white"
+                          className="w-full h-1 bg-zinc-900 rounded-lg appearance-none cursor-pointer accent-white"
                         />
                       </div>
 
-                      {/* Fee Estimation Display */}
+                      {/* Fee Estimation */}
                       {sendAmount && !sendAmountError && (
-                        <div className="bg-white/5 border border-white/10 p-3 rounded mb-6">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-zinc-400 uppercase font-bold">Estimated Fee</span>
-                            <span className="text-sm font-bold text-white">
-                              {sendAssetsHook.calculateEstimatedFee(sendAmount).toFixed(selectedToken === 'USDC' ? 6 : 8)} {selectedToken}
-                            </span>
-                          </div>
+                        <div className="bg-white/5 border border-white/10 p-4 space-y-2 mb-6">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-zinc-400 uppercase font-bold">Total Cost</span>
-                            <span className="text-sm font-bold text-white">
-                              {sendAssetsHook.calculateTotalCost(sendAmount).toFixed(selectedToken === 'USDC' ? 6 : 8)} {selectedToken}
+                            <span className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Network Fee</span>
+                            <span className="text-xs font-bold text-white tracking-widest">
+                              ~{sendAssetsHook.calculateEstimatedFee(sendAmount).toFixed(6)} {selectedToken}
                             </span>
                           </div>
-                          <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
-                            <span className="text-xs text-zinc-500">Min Amount</span>
-                            <span className="text-xs text-zinc-400">{sendAssetsHook.minAmount} {selectedToken}</span>
+                          <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                            <span className="text-[10px] text-zinc-400 uppercase font-black tracking-widest">Total Cost</span>
+                            <span className="text-xs font-bold text-white tracking-widest">
+                              {sendAssetsHook.calculateTotalCost(sendAmount).toFixed(6)} {selectedToken}
+                            </span>
                           </div>
+                        </div>
+                      )}
+
+                      {sendAmountError && (
+                        <div className="flex items-center gap-1 mb-4 text-[10px] text-red-500 font-bold uppercase tracking-widest">
+                          <Info size={12} />
+                          {sendAmountError}
                         </div>
                       )}
                     </div>
@@ -947,19 +990,19 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     <button
                       onClick={handleConfirmSend}
                       disabled={sendAssetsHook.isLoading || !sendAmount || !sendToAddress}
-                      className={`w-full py-4 font-bold uppercase tracking-widest text-xs transition-all ${sendAssetsHook.isLoading || !sendAmount || !sendToAddress
-                        ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                        : 'bg-white text-black hover:bg-zinc-200'
+                      className={`w-full py-5 font-black uppercase tracking-[0.3em] text-[10px] transition-all ${sendAssetsHook.isLoading || !sendAmount || !sendToAddress
+                        ? 'bg-zinc-900 text-zinc-600 cursor-not-allowed border border-white/5'
+                        : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
                         }`}
                     >
-                      {sendAssetsHook.isLoading ? 'Sending...' : 'Confirm Send'}
+                      {sendAssetsHook.isLoading ? 'Processing...' : 'Confirm Transaction'}
                     </button>
                   </div>
                 </div>
               )}
 
               {walletView === 'receive' && (
-                <div className="p-6">
+                <div className="p-6 animate-in fade-in slide-in-from-right duration-300 h-full flex flex-col">
                   <button
                     onClick={() => setWalletView('assets')}
                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
@@ -967,56 +1010,53 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                     <ChevronLeft size={14} /> Back to Assets
                   </button>
 
-                  <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight text-center">Receive Assets</h2>
+                  <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight text-center">Receive</h2>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold text-center mb-8">Starknet Mainnet Only</p>
 
-                  <div className="flex flex-col items-center">
-                    {/* Real QR Code using QR Server API with Loading Context */}
-                    <div className="w-48 h-48 bg-white p-2 mb-6 flex items-center justify-center relative overflow-hidden group">
+                  <div className="flex flex-col items-center flex-1">
+                    <div className="w-56 h-56 bg-white p-4 mb-8 flex items-center justify-center relative rounded-2xl shadow-[0_0_50px_rgba(255,255,255,0.05)]">
                       {isQrLoading && (
-                        <div className="absolute inset-0 bg-white flex flex-col items-center justify-center gap-2 z-10">
-                          <div className="w-8 h-8 border-2 border-zinc-200 border-t-zinc-800 animate-spin rounded-full"></div>
-                          <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest animate-pulse">Generating QR</span>
+                        <div className="absolute inset-0 bg-white flex flex-col items-center justify-center gap-3 z-10 rounded-2xl">
+                          <div className="w-10 h-10 border-2 border-zinc-100 border-t-black animate-spin rounded-full"></div>
+                          <span className="text-[9px] font-black text-black uppercase tracking-widest animate-pulse">Generating</span>
                         </div>
                       )}
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${formatStarknetAddress(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a')}`}
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${formatStarknetAddress(wallet?.publicKey || '0x0')}`}
                         alt="Wallet QR Code"
-                        className={`w-[180px] h-[180px] transition-opacity duration-300 ${isQrLoading ? 'opacity-0' : 'opacity-100'}`}
+                        className={`w-48 h-48 transition-opacity duration-300 ${isQrLoading ? 'opacity-0' : 'opacity-100'}`}
                         onLoad={() => setIsQrLoading(false)}
                       />
                     </div>
 
-                    <div className="w-full mb-4">
-                      <div className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-2 text-center">Your Starknet Address</div>
-                      <div className="p-3 bg-white/5 border border-white/10 text-xs text-white break-all text-center font-mono">
-                        {formatStarknetAddress(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a')}
+                    <div className="w-full space-y-4">
+                      <div>
+                        <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-black mb-3 text-center">Your Deposit Address</div>
+                        <div className="p-4 bg-white/5 border border-white/10 text-[11px] text-white break-all text-center font-mono rounded-lg">
+                          {formatStarknetAddress(wallet?.publicKey || '0x0')}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Botón de Copiado Rápido */}
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(formatStarknetAddress(wallet?.publicKey || '0x04718285712f0959891c8d9045966755c4ab4301002380ee73d59952a'));
-                      }}
-                      className="w-full py-3 mb-3 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Copy size={14} /> Copy Address
-                    </button>
-
-                    {network !== 'MAINNET' && (
                       <button
-                        onClick={() => window.open('https://starknet-faucet.vercel.app/', '_blank')}
-                        className="w-full py-3 bg-white/5 border border-white/10 text-white text-xs uppercase tracking-widest hover:bg-white/10 transition-all font-bold flex items-center justify-center gap-2"
+                        onClick={() => {
+                          const addr = formatStarknetAddress(wallet?.publicKey || '0x0');
+                          navigator.clipboard.writeText(addr);
+                        }}
+                        className="w-full py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-lg"
                       >
-                        Get Testnet Tokens <ExternalLink size={12} />
+                        <Copy size={16} /> Copy Address
                       </button>
-                    )}
+
+                      <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest text-center px-4 leading-relaxed">
+                        Send only STARKNET (ETH, STRK, USDC) assets to this address. Sending other assets may result in permanent loss.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
 
               {walletView === 'transactions' && (
-                <div className="p-6">
+                <div className="p-6 animate-in fade-in slide-in-from-right duration-300">
                   <button
                     onClick={() => setWalletView('assets')}
                     className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
@@ -1026,11 +1066,22 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
                   <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Transactions</h2>
 
-                  <div className="text-center py-12">
-                    <Receipt size={48} className="mx-auto mb-4 text-zinc-600" />
-                    <p className="text-sm text-zinc-400">
-                      This feature is coming soon. Stay tuned for advanced transaction tracking.
-                    </p>
+                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                    <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-zinc-700">
+                      <Receipt size={40} />
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-bold text-white uppercase tracking-widest">History Coming Soon</h4>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-widest leading-relaxed max-w-[220px]">
+                        Advanced on-chain transaction tracking is under development for Mainnet.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setWalletView('assets')}
+                      className="px-6 py-3 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-colors"
+                    >
+                      Back to Dashboard
+                    </button>
                   </div>
                 </div>
               )}
@@ -1039,19 +1090,16 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-zinc-950 border-t border-white/10 flex items-center justify-between text-[10px] text-zinc-500 uppercase tracking-widest font-bold shrink-0">
-          <div>Reflecter Wallet | Starknet Wallet</div>
-          <div>v1.0.0</div>
+        <div className="p-4 bg-black border-t border-white/10 flex items-center justify-between text-[8px] text-zinc-600 uppercase tracking-[0.3em] font-black shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-1 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+            Mainnet Production
+          </div>
+          <div>v1.1.0</div>
         </div>
       </div>
+
       <style jsx>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
@@ -1059,11 +1107,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.4);
+          background: rgba(255, 255, 255, 0.2);
         }
       `}</style>
     </>

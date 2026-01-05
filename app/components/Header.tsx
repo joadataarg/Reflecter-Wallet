@@ -20,7 +20,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
     { label: 'HOW IT WORKS', href: '#demo' },
     { label: 'COMPARE', href: '#comparison' },
     { label: 'ROADMAP', href: '#roadmap' },
-    { label: 'DEVELOPERS', href: '#developers' },
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
@@ -95,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
       </nav>
 
       {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 top-[56px] md:top-[64px] bg-black z-40 md:hidden transition-all duration-500 ease-in-out border-t border-white/[0.05] ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
+      <div className={`fixed inset-0 top-[56px] md:top-[64px] bg-black/95 backdrop-blur-2xl z-40 md:hidden transition-all duration-500 ease-in-out border-t border-white/[0.05] ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
         <div className="flex flex-col p-8 gap-8 items-center justify-center h-full">
           {navLinks.map((link) => (
             <a
