@@ -321,7 +321,11 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
         config,
         (decodedText) => {
           setIsScanning(false);
-          setShowQrFeatureModal(true);
+          if (walletView === 'send') {
+            setSendToAddress(decodedText);
+          } else {
+            setShowQrFeatureModal(true);
+          }
           html5QrCode?.stop().catch(console.error);
         },
         (errorMessage) => {
@@ -1030,21 +1034,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         </div>
                       </div>
 
-                      {/* QR Reader Modal/Overlay */}
-                      {isScanning && (
-                        <div className="fixed inset-0 z-[120] bg-black flex flex-col items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
-                          <div className="w-full max-w-sm mb-8 flex justify-between items-center">
-                            <h3 className="text-white font-black uppercase tracking-widest">Scan Address</h3>
-                            <button onClick={() => setIsScanning(false)} className="text-zinc-400 hover:text-white p-2">
-                              <X size={24} />
-                            </button>
-                          </div>
-                          <div id="qr-reader" className="w-full max-w-sm aspect-square bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.05)]"></div>
-                          <p className="mt-8 text-zinc-500 text-[10px] uppercase font-bold tracking-[0.2em] text-center max-w-[200px]">
-                            Center the QR code in the frame to scan
-                          </p>
-                        </div>
-                      )}
+
 
                       {sendAddressError && (
                         <div className="flex items-center gap-1 mt-2 text-[10px] text-red-500 font-bold uppercase tracking-widest">
@@ -1681,6 +1671,22 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                 <span className="text-[8px] font-black uppercase tracking-widest">Tarjeta</span>
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Global QR Reader Modal/Overlay */}
+        {isScanning && (
+          <div className="fixed inset-0 z-[120] bg-black flex flex-col items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+            <div className="w-full max-w-sm mb-8 flex justify-between items-center">
+              <h3 className="text-white font-black uppercase tracking-widest">Escanear QR</h3>
+              <button onClick={() => setIsScanning(false)} className="text-zinc-400 hover:text-white p-2">
+                <X size={24} />
+              </button>
+            </div>
+            <div id="qr-reader" className="w-full max-w-sm aspect-square bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.05)]"></div>
+            <p className="mt-8 text-zinc-500 text-[10px] uppercase font-bold tracking-[0.2em] text-center max-w-[200px]">
+              Apunta la cámara al código QR para escanear
+            </p>
           </div>
         )}
 
