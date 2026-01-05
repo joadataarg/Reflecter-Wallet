@@ -7,13 +7,12 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 
 interface HeaderProps {
-  onOpenWallet: () => void;
+  onOpenWallet: (view?: 'login' | 'register') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const pathname = usePathname();
-  const isDashboard = pathname === '/dashboard';
 
   const navLinks = [
     { label: 'HOME', href: '#hero' },
@@ -25,7 +24,6 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
-    if (isDashboard) return; // Logic handled by router in dashboard if needed
     e.preventDefault();
     const id = href.replace('#', '');
     const element = document.getElementById(id);
@@ -59,30 +57,28 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
         </div>
 
         {/* Centered Navigation Links Desktop */}
-        {!isDashboard && (
-          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                onClick={(e) => handleScroll(e, link.href)}
-                className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        )}
+        <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-8">
+          {navLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              onClick={(e) => handleScroll(e, link.href)}
+              className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
 
         <div className="hidden md:flex items-center gap-8">
-          <Link
-            href="/login"
+          <button
+            onClick={() => onOpenWallet('login')}
             className="group flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors"
           >
             LOGIN
-          </Link>
+          </button>
           <button
-            onClick={onOpenWallet}
+            onClick={() => onOpenWallet('register')}
             className="px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.15em] hover:opacity-90 transition-all active:scale-95 flex items-center gap-2 shadow-[0_4px_20px_rgba(255,255,255,0.05)]"
           >
             Create Wallet
@@ -114,17 +110,19 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
 
           <div className="w-full h-px bg-white/5 my-4" />
 
-          <Link
-            href="/login"
+          <button
             className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all flex items-center gap-2"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            LOGIN
-          </Link>
-            <button
             onClick={() => {
               setIsMenuOpen(false);
-              onOpenWallet();
+              onOpenWallet('login');
+            }}
+          >
+            LOGIN
+          </button>
+          <button
+            onClick={() => {
+              setIsMenuOpen(false);
+              onOpenWallet('register');
             }}
             className="w-full max-w-xs py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-[0_10px_40px_rgba(255,255,255,0.05)]"
           >

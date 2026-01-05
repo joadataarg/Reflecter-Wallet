@@ -17,8 +17,8 @@ export type UseFirebaseAuthReturn = {
     user: User | null;
     loading: boolean;
     error: string | null;
-    signUp: (email: string, password: string) => Promise<void>;
-    signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string) => Promise<User | null>;
+    signIn: (email: string, password: string) => Promise<User | null>;
     signOut: () => Promise<void>;
     getToken: () => Promise<string | null>;
 };
@@ -44,8 +44,9 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
         try {
             setError(null);
             setLoading(true);
-            await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             logger.audit('User signed up', { email });
+            return userCredential.user;
         } catch (err) {
             const sdkError = createSDKError(ErrorCode.AUTH_FAILED, { email }, err);
             setError(sdkError.message);
@@ -60,8 +61,9 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
         try {
             setError(null);
             setLoading(true);
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
             logger.debug('User signed in', { email });
+            return userCredential.user;
         } catch (err) {
             const sdkError = createSDKError(ErrorCode.AUTH_INVALID_CREDENTIALS, { email }, err);
             setError(sdkError.message);

@@ -9,6 +9,7 @@ import WalletPopup from '@/app/components/WalletPopup';
 export default function HomePage() {
   const { user } = useFirebaseAuth();
   const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [walletAuthView, setWalletAuthView] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
     if (isWalletOpen) {
@@ -19,16 +20,21 @@ export default function HomePage() {
     return () => { document.body.style.overflow = 'unset'; };
   }, [isWalletOpen]);
 
-  const handleOpenWallet = () => setIsWalletOpen(true);
+  const handleOpenWallet = (view: 'login' | 'register' = 'register') => {
+    setWalletAuthView(view);
+    setIsWalletOpen(true);
+  };
+
   const handleCloseWallet = () => setIsWalletOpen(false);
 
   return (
     <div className="bg-black text-white selection:bg-white selection:text-black min-h-screen">
       <Header onOpenWallet={handleOpenWallet} />
-      <Landing />
+      <Landing onOpenWallet={() => handleOpenWallet('register')} />
       <WalletPopup
         isOpen={isWalletOpen}
         onClose={handleCloseWallet}
+        initialAuthView={walletAuthView}
       />
     </div>
   );

@@ -11,7 +11,11 @@ import {
   Calendar, FileText, GitBranch, Terminal, MessageCircle
 } from 'lucide-react';
 
-const Landing: React.FC = () => {
+interface LandingProps {
+  onOpenWallet?: () => void;
+}
+
+const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
   const partnerLogos = [
     { src: "https://starknet.io/logo.png", alt: "Starknet", class: "h-12 md:h-14" },
     { src: "https://avatars.githubusercontent.com/u/104390117", alt: "Starknet Foundation", class: "h-14 md:h-16" },
@@ -62,7 +66,10 @@ const Landing: React.FC = () => {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition-all flex items-center gap-2 group">
+              <button
+                onClick={onOpenWallet}
+                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition-all flex items-center gap-2 group"
+              >
                 Create Wallet Now <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
               </button>
               <button className="px-8 py-4 bg-transparent border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all">
@@ -601,7 +608,10 @@ const Landing: React.FC = () => {
             Join the Starknet ecosystem with the simplest wallet onboarding.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button className="px-12 py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition-all flex items-center justify-center gap-2 group">
+            <button
+              onClick={onOpenWallet}
+              className="px-12 py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition-all flex items-center justify-center gap-2 group"
+            >
               Create Wallet Now <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
             </button>
             <button className="px-12 py-5 bg-transparent border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all">

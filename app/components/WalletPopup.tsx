@@ -24,7 +24,9 @@ import {
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import { useFetchWallet } from '@/lib/hooks/useFetchWallet';
 import { useNetwork } from '@/lib/hooks/useNetwork';
-import WalletManager from '@/app/components/WalletManager';
+import { useCreateWallet } from '@chipi-stack/nextjs';
+import { auth } from '@/lib/firebase/config';
+import { deriveEncryptKey } from '@/lib/utils/deriveEncryptKey';
 import VesuLending from '@/app/components/VesuLending';
 import { VesuExplorer } from '@/app/components/VesuExplorer';
 import NetworkSelector from '@/app/components/NetworkSelector';
@@ -67,18 +69,28 @@ interface WalletPopupProps {
   isOpen: boolean;
   onClose: () => void;
   isEmbedded?: boolean;
+  initialAuthView?: AuthView;
 }
 
-const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded = false }) => {
-  const { user, signIn, signUp, signOut } = useFirebaseAuth();
-  const { wallet } = useFetchWallet();
+const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded = false, initialAuthView = 'login' }) => {
+  const { user, signIn, signUp, signOut, getToken } = useFirebaseAuth();
+  const { wallet, error: walletError, isLoading: isWalletLoading, refetch: refetchWallet } = useFetchWallet();
   const { network, toggleNetwork } = useNetwork();
+  const { createWalletAsync } = useCreateWallet();
 
-  const [authView, setAuthView] = useState<AuthView>('login');
+  const [authView, setAuthView] = useState<AuthView>(initialAuthView);
   const [walletView, setWalletView] = useState<WalletView>('assets');
   const [isLoading, setIsLoading] = useState(false);
   const [walletSession, setWalletSession] = useState<WalletSession | null>(null);
   const [selectedToken, setSelectedToken] = useState<'ETH' | 'STRK' | 'USDC'>('ETH');
+
+  // Update authView when opening the popup if initialAuthView is provided
+  useEffect(() => {
+    if (isOpen && initialAuthView) {
+      setAuthView(initialAuthView);
+    }
+  }, [isOpen, initialAuthView]);
+
   const [activeDashboardTab, setActiveDashboardTab] = useState<'assets' | 'positions' | 'history'>('assets');
   const [isTokenDropdownOpen, setIsTokenDropdownOpen] = useState(false);
   const [isValueVisible, setIsValueVisible] = useState(true);
@@ -126,6 +138,12 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
     USDC: { name: 'USD COIN', icon: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png', fallback: '$' }
   };
 
+  // Redirect to login or show warning if we get 401 errors consistently
+  useEffect(() => {
+    if (walletError && (walletError as any).status === 401) {
+      console.error('Chipi Auth Error (401): Please check your Dashboard JWT validation rules. Ensure "aud" is set to "reflecter-wallet" and "iss" matches your Firebase project.');
+    }
+  }, [walletError]);
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -135,10 +153,38 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
       if (authView === 'login') {
         await signIn(email, password);
       } else {
-        await signUp(email, password);
+        // 1. Firebase Sign Up
+        const firebaseUser = await signUp(email, password);
+        if (!firebaseUser) throw new Error('Error al crear el usuario en Firebase.');
+
+        // 2. Get User Token
+        const bearerToken = await firebaseUser.getIdToken();
+        if (!bearerToken) throw new Error('No se pudo obtener el token de autenticación.');
+
+        // 3. User UID
+        const userUid = firebaseUser.uid;
+
+        // 4. Derive Encryption Key
+        const encryptKey = await deriveEncryptKey(userUid);
+
+        // 5. Create Wallet with ChipiPay (This also deploys it on Starknet)
+        const response = await createWalletAsync({
+          params: {
+            encryptKey,
+            externalUserId: userUid,
+          },
+          bearerToken,
+        });
+
+        console.log('Wallet created and deployed:', response.txHash);
       }
     } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+      console.error('Registration/Wallet Error:', err);
+      if (err.status === 401) {
+        setError('Error de autorización: Verifica la configuración de JWT en el dashboard de Chipi.');
+      } else {
+        setError(err.message || 'Error en la autenticación o creación de billetera');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -219,8 +265,8 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
       <div
         className={`${isEmbedded
           ? 'relative w-full h-full border-none shadow-none'
-          : 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] w-full max-w-[380px] h-[600px] border border-white/20 shadow-[0_0_100px_rgba(255,255,255,0.1)] transition-all duration-300'
-          } bg-black flex flex-col ${!isEmbedded && (isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none')
+          : 'fixed bottom-0 md:top-1/2 left-0 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[110] w-full md:max-w-[380px] h-[85vh] md:h-[600px] border-t md:border border-white/20 shadow-[0_0_100px_rgba(255,255,255,0.1)] transition-all duration-500 rounded-t-[2rem] md:rounded-none'
+          } bg-black flex flex-col ${!isEmbedded && (isOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-full md:translate-y-0 md:scale-95 opacity-0 pointer-events-none')
           }`}
       >
         {/* Header */}
@@ -315,12 +361,12 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
 
               <div className="mt-8 pt-6 border-t border-white/5 text-center">
                 {authView === 'login' ? (
-                <p className="text-xs text-zinc-300 font-light">
-                  New to Reflecter Wallet?{' '}
-                  <button onClick={() => setAuthView('register')} className="text-white font-bold hover:underline">
-                    Create Wallet
-                  </button>
-                </p>
+                  <p className="text-xs text-zinc-300 font-light">
+                    New to Reflecter Wallet?{' '}
+                    <button onClick={() => setAuthView('register')} className="text-white font-bold hover:underline">
+                      Create Wallet
+                    </button>
+                  </p>
                 ) : (
                   <button
                     onClick={() => setAuthView('login')}
