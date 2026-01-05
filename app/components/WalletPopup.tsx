@@ -36,7 +36,8 @@ import {
   Star,
   Trophy,
   Play,
-  Share2
+  Share2,
+  Search
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
@@ -53,7 +54,7 @@ import { useSendAssets } from '@/lib/hooks/useSendAssets';
 import { formatStarknetAddress } from '@/lib/utils/formatAddress';
 
 type AuthView = 'login' | 'register';
-type WalletView = 'home' | 'assets' | 'send' | 'receive' | 'settings' | 'transactions' | 'miniapps' | 'card';
+type WalletView = 'home' | 'assets' | 'send' | 'receive' | 'receive-starknet' | 'receive-bridge' | 'settings' | 'transactions' | 'miniapps' | 'card';
 
 // Token Icon Component with fallback
 const TokenIcon: React.FC<{ src: string; alt: string; fallback: string; size?: string }> = ({ src, alt, fallback, size = 'w-6 h-6' }) => {
@@ -243,6 +244,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
   const [isLoading, setIsLoading] = useState(false);
   const [walletSession, setWalletSession] = useState<WalletSession | null>(null);
   const [selectedToken, setSelectedToken] = useState<'ETH' | 'STRK' | 'USDC'>('ETH');
+  const [chainSearch, setChainSearch] = useState('');
 
   // Update authView when opening the popup if initialAuthView is provided
   useEffect(() => {
@@ -1157,6 +1159,48 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                   </button>
 
                   <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight text-center">Recibir</h2>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold text-center mb-8">Selecciona una opción</p>
+
+                  <div className="space-y-4 flex-1 flex flex-col justify-center pb-20">
+                    <button
+                      onClick={() => setWalletView('receive-starknet')}
+                      className="group p-6 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 hover:scale-[1.02] transition-all rounded-2xl flex flex-col items-center gap-4 text-center"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors border border-indigo-500/20">
+                        <img src="https://www.starknet.io/assets/starknet-logo.svg" alt="Starknet" className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest mb-1">Desde Starknet</h3>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wide">Recibe tokens desde otra billetera</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setWalletView('receive-bridge')}
+                      className="group p-6 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 hover:scale-[1.02] transition-all rounded-2xl flex flex-col items-center gap-4 text-center"
+                    >
+                      <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors border border-purple-500/20">
+                        <Globe size={32} className="text-purple-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest mb-1">Desde Otra Cadena</h3>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wide">BTC, ETH, SOL y más redes</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {walletView === 'receive-starknet' && (
+                <div className="p-6 animate-in fade-in slide-in-from-right duration-300 h-full flex flex-col">
+                  <button
+                    onClick={() => setWalletView('receive')}
+                    className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
+                  >
+                    <ChevronLeft size={14} /> Volver
+                  </button>
+
+                  <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-tight text-center">Recibir</h2>
                   <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold text-center mb-8">Solo Starknet Mainnet</p>
 
                   <div className="flex flex-col items-center flex-1">
@@ -1197,6 +1241,58 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                         Envía solo activos de STARKNET (ETH, STRK, USDC) a esta dirección. El envío de otros activos puede resultar en una pérdida permanente.
                       </p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {walletView === 'receive-bridge' && (
+                <div className="p-6 animate-in fade-in slide-in-from-right duration-300 h-full flex flex-col">
+                  <button
+                    onClick={() => setWalletView('receive')}
+                    className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors mb-6"
+                  >
+                    <ChevronLeft size={14} /> Volver
+                  </button>
+
+                  <h2 className="text-xl font-bold text-white mb-6 uppercase tracking-tight">Elegir Cadena</h2>
+
+                  <div className="relative mb-6">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                    <input
+                      type="text"
+                      placeholder="Buscar cadena..."
+                      value={chainSearch}
+                      onChange={(e) => setChainSearch(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-zinc-600"
+                    />
+                  </div>
+
+                  <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 -mr-2 pr-2">
+                    {[
+                      { name: 'Bitcoin', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
+                      { name: 'Ethereum', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+                      { name: 'Arbitrum', icon: 'https://cryptologos.cc/logos/arbitrum-arb-logo.png' },
+                      { name: 'Optimism', icon: 'https://cryptologos.cc/logos/optimism-ethereum-op-logo.png' },
+                      { name: 'Polygon', icon: 'https://cryptologos.cc/logos/polygon-matic-logo.png' },
+                      { name: 'Base', icon: 'https://avatars.githubusercontent.com/u/108554348?s=200&v=4' },
+                      { name: 'Stellar', icon: 'https://cryptologos.cc/logos/stellar-xlm-logo.png' },
+                    ].filter(chain => chain.name.toLowerCase().includes(chainSearch.toLowerCase())).map((chain) => (
+                      <div
+                        key={chain.name}
+                        className="w-full p-4 bg-white/5 border border-white/10 rounded-xl flex items-center gap-4 opacity-50 grayscale-[0.5]"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-white/5 p-2 flex items-center justify-center border border-white/5">
+                          <TokenIcon src={chain.icon} alt={chain.name} fallback={chain.name[0]} size="w-full h-full object-contain" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="text-sm font-bold text-white uppercase tracking-wide">{chain.name}</div>
+                          <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Integración Pendiente</div>
+                        </div>
+                        <div className="px-2 py-1 bg-white/10 rounded text-[8px] font-black uppercase text-zinc-400 tracking-widest border border-white/5">
+                          Pronto
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

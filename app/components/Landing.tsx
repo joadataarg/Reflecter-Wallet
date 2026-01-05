@@ -8,7 +8,7 @@ import {
   Smartphone, Code2, Mail, MessageSquare, Twitter,
   Facebook, Github, Linkedin, Youtube, Instagram,
   Wallet, Key, Cloud, BarChart, Cpu, ShieldCheck,
-  Calendar, FileText, GitBranch, Terminal, MessageCircle
+  Calendar, FileText, GitBranch, Terminal, MessageCircle, Gift
 } from 'lucide-react';
 
 interface LandingProps {
@@ -55,9 +55,9 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
             </div>
 
             <h1 className="text-6xl md:text-8xl lg:text-[110px] font-black tracking-tighter leading-[0.85] uppercase">
-              Your Starknet <br />
-              <span className="text-zinc-500">Wallet Without</span> <br />
-              <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Seed Phrases</span>
+              The Next Gen <br />
+              <span className="text-zinc-500">Starknet Wallet</span> <br />
+              <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Powering You</span>
             </h1>
 
             <p className="text-lg md:text-xl text-zinc-400 max-w-xl font-light leading-relaxed">
@@ -69,10 +69,7 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
                 onClick={onOpenWallet}
                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition-all flex items-center gap-2 group"
               >
-                Create Wallet Now <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
-              </button>
-              <button className="px-8 py-4 bg-transparent border border-white/10 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all">
-                View Documentation
+                Get Early Access <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
               </button>
             </div>
 
@@ -211,7 +208,7 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
                 </div>
                 <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Zero Friction</h3>
                 <p className="text-zinc-500 font-light leading-relaxed text-sm">
-                  Social login onboarding. No seed phrases, no technical barriers. Start using Starknet in seconds.
+                  Sign up with Google, Twitter, or Discord. No seed phrases to manage. Institutional-grade security.
                 </p>
               </div>
             </div>
@@ -219,11 +216,11 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
             <div className="p-10 border border-white/[0.05] hover:border-white/20 transition-all duration-500 hover:bg-zinc-950/50 group">
               <div className="mb-8">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500/10 to-purple-500/5 border border-purple-500/20 flex items-center justify-center mb-6">
-                  <ShieldCheck size={24} className="text-purple-500" />
+                  <Gift size={24} className="text-purple-500" />
                 </div>
-                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Full DeFi Access</h3>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Rewards & Cards</h3>
                 <p className="text-zinc-500 font-light leading-relaxed text-sm">
-                  Send/receive assets, access liquidity pools, execute algorithmic trading. All from one interface.
+                  Earn points for every action. Request your physical card and spend your crypto anywhere. (Coming Soon)
                 </p>
               </div>
             </div>
@@ -235,7 +232,7 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
                 </div>
                 <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Starknet Native</h3>
                 <p className="text-zinc-500 font-light leading-relaxed text-sm">
-                  Ultra-low fees, blazing fast transactions, secured by Ethereum's L2 technology.
+                  Built on Cairo. Experience instant confirmation and near-zero gas fees.
                 </p>
               </div>
             </div>
@@ -418,7 +415,7 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
               </span>
             </div>
             <p className="mt-8 text-zinc-500 text-sm max-w-2xl mx-auto">
-              "Open source on GitHub. Production-ready infrastructure built by Reflecter Labs."
+              "Enterprise-grade security. Built by Reflecter Labs."
             </p>
           </div>
         </div>
@@ -433,9 +430,9 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
               <span className="text-[10px] font-black uppercase tracking-[0.5em]">Our Journey</span>
               <div className="h-px w-8 bg-current" />
             </div>
-            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">What's Next</h2>
+            <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">Product Roadmap</h2>
             <p className="text-xl text-zinc-500 font-light max-w-2xl mx-auto leading-relaxed">
-              Follow our journey as we build the future of Starknet wallets
+              We are building the most advanced financial super-app on Starknet.
             </p>
           </div>
 
@@ -561,16 +558,6 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
                 <MessageSquare size={16} className="text-zinc-500 hover:text-white cursor-pointer transition-colors" />
                 <MessageCircle size={16} className="text-zinc-500 hover:text-white cursor-pointer transition-colors" />
               </div>
-            </div>
-
-            <div className="space-y-8">
-              <h4 className="text-white font-black uppercase text-[10px] tracking-[0.4em]">Product</h4>
-              <ul className="space-y-4 text-xs font-bold uppercase tracking-widest text-zinc-600">
-                <li className="hover:text-white transition-colors cursor-pointer">Home</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Documentation</li>
-                <li className="hover:text-white transition-colors cursor-pointer">GitHub Repository</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Roadmap</li>
-              </ul>
             </div>
 
             <div className="space-y-8">
