@@ -94,23 +94,23 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
       </nav>
 
       {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 top-[56px] md:top-[64px] bg-black/95 backdrop-blur-2xl z-40 md:hidden transition-all duration-500 ease-in-out border-t border-white/[0.05] ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-        <div className="flex flex-col p-8 gap-8 items-center justify-center h-full">
+      <div className={`fixed inset-0 top-[56px] md:top-[64px] bg-black z-40 md:hidden transition-all duration-500 ease-in-out border-t border-white/[0.05] ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
+        <div className="flex flex-col p-8 gap-6 items-center justify-start h-full overflow-y-auto pt-12">
           {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
               onClick={(e) => handleScroll(e, link.href)}
-              className="text-lg font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all"
+              className="text-lg font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all py-2"
             >
               {link.label}
             </a>
           ))}
 
-          <div className="w-full h-px bg-white/5 my-4" />
+          <div className="w-full h-px bg-white/5 my-4 shrink-0" />
 
           <button
-            className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all flex items-center gap-2"
+            className="text-sm font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-white transition-all flex items-center gap-2 py-4"
             onClick={() => {
               setIsMenuOpen(false);
               onOpenWallet('login');
@@ -123,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenWallet }) => {
               setIsMenuOpen(false);
               onOpenWallet('register');
             }}
-            className="w-full max-w-xs py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-[0_10px_40px_rgba(255,255,255,0.05)]"
+            className="w-full max-w-xs py-5 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-[0_10px_40px_rgba(255,255,255,0.05)] shrink-0"
           >
             CREATE WALLET NOW
           </button>
