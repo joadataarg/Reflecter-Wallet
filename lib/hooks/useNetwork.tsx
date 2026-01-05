@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, createContext, useContext, ReactNode } from 'react';
 import { logger } from '../utils/logger';
-import { createSDKError, ErrorCode } from '../utils/errors';
+import { createWalletError, ErrorCode } from '../utils/errors';
 
 export type NetworkType = 'SEPOLIA' | 'MAINNET';
 
@@ -42,7 +42,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
 export function useNetwork() {
   const context = useContext(NetworkContext);
   if (context === undefined) {
-    const err = createSDKError(ErrorCode.CONFIG_INVALID, { hook: 'useNetwork' });
+    const err = createWalletError(ErrorCode.CONFIG_INVALID, { hook: 'useNetwork' });
     logger.error('useNetwork used outside of NetworkProvider');
     throw err;
   }

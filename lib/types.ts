@@ -23,14 +23,6 @@ export interface TokenBalance {
   decimals: number;
 }
 
-export interface VesuPosition {
-  asset: string;
-  supplyBalance: string;
-  debtBalance: string;
-  apy: string;
-  walletBalance: string;
-}
-
 export interface UserSession {
   address: string;
   email?: string;

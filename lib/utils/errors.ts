@@ -28,13 +28,6 @@ export enum ErrorCode {
     NETWORK_TIMEOUT = 'NETWORK_4002',
     NETWORK_UNAVAILABLE = 'NETWORK_4003',
 
-    // DeFi Protocol Errors (5xxx)
-    DEFI_POSITION_FETCH_FAILED = 'DEFI_5001',
-    DEFI_APPROVAL_FAILED = 'DEFI_5002',
-    DEFI_DEPOSIT_FAILED = 'DEFI_5003',
-    DEFI_WITHDRAW_FAILED = 'DEFI_5004',
-    DEFI_INSUFFICIENT_LIQUIDITY = 'DEFI_5005',
-
     // Configuration Errors (6xxx)
     CONFIG_INVALID = 'CONFIG_6001',
     CONFIG_MISSING_ENV = 'CONFIG_6002',
@@ -43,7 +36,7 @@ export enum ErrorCode {
     UNKNOWN_ERROR = 'ERROR_9999',
 }
 
-export class SDKError extends Error {
+export class WalletError extends Error {
     public readonly code: ErrorCode;
     public readonly context?: Record<string, any>;
     public readonly cause?: unknown;
@@ -56,15 +49,14 @@ export class SDKError extends Error {
         cause?: unknown
     ) {
         super(message);
-        this.name = 'SDKError';
+        this.name = 'WalletError';
         this.code = code;
         this.context = context;
         this.cause = cause;
         this.timestamp = Date.now();
 
-        // Maintains proper stack trace for where our error was thrown (only available on V8)
         if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, SDKError);
+            Error.captureStackTrace(this, WalletError);
         }
     }
 
@@ -108,13 +100,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
     [ErrorCode.NETWORK_TIMEOUT]: 'Request timed out. Please try again.',
     [ErrorCode.NETWORK_UNAVAILABLE]: 'Network is currently unavailable.',
 
-    // DeFi
-    [ErrorCode.DEFI_POSITION_FETCH_FAILED]: 'Failed to fetch DeFi positions.',
-    [ErrorCode.DEFI_APPROVAL_FAILED]: 'Token approval failed.',
-    [ErrorCode.DEFI_DEPOSIT_FAILED]: 'Deposit failed.',
-    [ErrorCode.DEFI_WITHDRAW_FAILED]: 'Withdrawal failed.',
-    [ErrorCode.DEFI_INSUFFICIENT_LIQUIDITY]: 'Insufficient liquidity in the pool.',
-
     // Config
     [ErrorCode.CONFIG_INVALID]: 'Invalid configuration.',
     [ErrorCode.CONFIG_MISSING_ENV]: 'Missing required environment variable.',
@@ -124,29 +109,29 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
 };
 
 /**
- * Helper to create SDK errors quickly
+ * Helper to create wallet errors quickly
  */
-export function createSDKError(
+export function createWalletError(
     code: ErrorCode,
     context?: Record<string, any>,
     cause?: unknown
-): SDKError {
+): WalletError {
     const message = ERROR_MESSAGES[code];
-    return new SDKError(code, message, context, cause);
+    return new WalletError(code, message, context, cause);
 }
 
 /**
- * Check if an error is an SDKError
+ * Check if an error is a WalletError
  */
-export function isSDKError(error: unknown): error is SDKError {
-    return error instanceof SDKError;
+export function isWalletError(error: unknown): error is WalletError {
+    return error instanceof WalletError;
 }
 
 /**
  * Get user-friendly message from any error
  */
 export function getErrorMessage(error: unknown): string {
-    if (isSDKError(error)) {
+    if (isWalletError(error)) {
         return error.message;
     }
 

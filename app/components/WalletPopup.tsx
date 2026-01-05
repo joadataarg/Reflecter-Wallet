@@ -741,16 +741,7 @@ const WalletPopup: React.FC<WalletPopupProps> = ({ isOpen, onClose, isEmbedded =
                           <div className="text-[10px] text-zinc-400">Gasless transactions ready</div>
                         </div>
 
-                        <div className="p-4 bg-white/5 border border-white/10">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span className="text-xs font-bold text-white uppercase tracking-wider">Vesu Protocol</span>
-                            </div>
-                            <span className="text-xs text-emerald-500">✓ Available</span>
-                          </div>
-                          <div className="text-[10px] text-zinc-400">Lending hooks configured</div>
-                        </div>
+
                       </div>
                     </div>
 

@@ -11,7 +11,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { logger } from '../utils/logger';
-import { createSDKError, ErrorCode } from '../utils/errors';
+import { createWalletError, ErrorCode } from '../utils/errors';
 
 export type UseFirebaseAuthReturn = {
     user: User | null;
@@ -48,10 +48,10 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
             logger.audit('User signed up', { email });
             return userCredential.user;
         } catch (err) {
-            const sdkError = createSDKError(ErrorCode.AUTH_FAILED, { email }, err);
-            setError(sdkError.message);
-            logger.error('Sign up failed', { code: sdkError.code });
-            throw sdkError;
+            const walletError = createWalletError(ErrorCode.AUTH_FAILED, { email }, err);
+            setError(walletError.message);
+            logger.error('Sign up failed', { code: walletError.code });
+            throw walletError;
         } finally {
             setLoading(false);
         }
@@ -65,10 +65,10 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
             logger.debug('User signed in', { email });
             return userCredential.user;
         } catch (err) {
-            const sdkError = createSDKError(ErrorCode.AUTH_INVALID_CREDENTIALS, { email }, err);
-            setError(sdkError.message);
+            const walletError = createWalletError(ErrorCode.AUTH_INVALID_CREDENTIALS, { email }, err);
+            setError(walletError.message);
             logger.error('Sign in failed', { email });
-            throw sdkError;
+            throw walletError;
         } finally {
             setLoading(false);
         }
@@ -82,10 +82,10 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
             await firebaseSignOut(auth);
             logger.audit('User signed out', { uid });
         } catch (err) {
-            const sdkError = createSDKError(ErrorCode.AUTH_FAILED, {}, err);
-            setError(sdkError.message);
+            const walletError = createWalletError(ErrorCode.AUTH_FAILED, {}, err);
+            setError(walletError.message);
             logger.error('Sign out failed');
-            throw sdkError;
+            throw walletError;
         } finally {
             setLoading(false);
         }

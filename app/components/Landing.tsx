@@ -20,7 +20,6 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
     { src: "https://starknet.io/logo.png", alt: "Starknet", class: "h-12 md:h-14" },
     { src: "https://avatars.githubusercontent.com/u/104390117", alt: "Starknet Foundation", class: "h-14 md:h-16" },
     { src: "https://www.cairo-lang.org/wp-content/uploads/2024/03/Cairo-logo.png", alt: "Cairo", class: "h-14 md:h-16" },
-    { src: "https://docs.vesu.xyz/img/logo.png", alt: "Vesu", class: "h-9 md:h-10 brightness-0 invert" },
     { src: "https://www.gstatic.com/devrel-devsite/prod/ve08add287a6b4bdf8961ab8a1be50bf551be3816cdd70b7cc934114ff3ad5f10/firebase/images/touchicon-180.png", alt: "Firebase", class: "h-14 md:h-16" }
   ];
 
@@ -124,19 +123,20 @@ const Landing: React.FC<LandingProps> = ({ onOpenWallet }) => {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mb-8">
-                    {['Swap', 'Earn', 'Trade'].map((label, idx) => (
-                      <div key={label} className="flex flex-col items-center gap-2.5 p-4 border border-white/5 bg-zinc-950/50 hover:bg-zinc-900 transition-colors cursor-pointer">
-                        {idx === 0 ? <RefreshCw size={16} className="text-white" /> : idx === 1 ? <TrendingUp size={16} className="text-white" /> : <BarChart size={16} className="text-white" />}
-                        <span className="text-[7px] uppercase font-bold tracking-[0.2em] text-zinc-400">{label}</span>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-2 gap-2 mb-8">
+                    <div className="flex flex-col items-center gap-2.5 p-4 border border-white/5 bg-zinc-950/50">
+                      <ArrowUp size={16} className="text-white" />
+                      <span className="text-[7px] uppercase font-bold tracking-[0.2em] text-zinc-400">Send</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2.5 p-4 border border-white/5 bg-zinc-950/50">
+                      <ArrowDown size={16} className="text-white" />
+                      <span className="text-[7px] uppercase font-bold tracking-[0.2em] text-zinc-400">Receive</span>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between border-b border-white/10 mb-4 px-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-white border-b-2 border-white pb-2.5">Assets</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 pb-2.5 hover:text-zinc-400 cursor-pointer transition-colors">Positions</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 pb-2.5 hover:text-zinc-400 cursor-pointer transition-colors">History</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 pb-2.5">Transactions</span>
                   </div>
 
                   <div className="space-y-3 mb-6">
