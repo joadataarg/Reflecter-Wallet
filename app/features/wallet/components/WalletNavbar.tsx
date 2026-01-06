@@ -1,5 +1,4 @@
-import React from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Home, TrendingUp, QrCode } from 'lucide-react';
 import { WalletView } from '@/lib/core/domain/types';
 import { useWalletUI } from '@/lib/context/WalletUIContext';
@@ -13,14 +12,19 @@ interface WalletNavbarProps {
 export const WalletNavbar: React.FC<WalletNavbarProps> = ({ currentView: propView, onNavigate, onScan }) => {
     const { openScanner } = useWalletUI();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const router = useRouter();
 
     const handleScan = onScan || openScanner;
 
-    // Determine current view from pathname if not provided
-    const currentView = propView || (pathname.includes('/dashboard') ? 'home' :
-        pathname.includes('/send') ? 'send' :
-            pathname.includes('/receive') ? 'receive' : 'home');
+    // Determine current view from pathname AND search params if not provided
+    const viewParam = searchParams.get('view') as WalletView;
+    const currentView = propView || (
+        pathname.includes('/dashboard')
+            ? (viewParam === 'assets' ? 'assets' : 'home')
+            : pathname.includes('/send') ? 'send' :
+                pathname.includes('/receive') ? 'receive' : 'home'
+    );
 
     const handleNavigation = (view: WalletView) => {
         if (onNavigate) {
@@ -53,35 +57,41 @@ export const WalletNavbar: React.FC<WalletNavbarProps> = ({ currentView: propVie
 
                 <button
                     onClick={() => handleNavigation('home')}
-                    className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${currentView === 'home' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+                    className={`flex flex-col items-center gap-1.5 relative transition-all duration-500 ${currentView === 'home' ? 'text-white translate-y-[-2px]' : 'text-zinc-600 hover:text-zinc-400'}`}
                 >
-                    <div className={`p-2 ${currentView === 'home' ? 'bg-white/5 rounded-xl' : ''}`}>
-                        <Home size={20} />
+                    <div className={`p-2 transition-all duration-300 ${currentView === 'home' ? 'bg-white/10 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.05)]' : ''}`}>
+                        <Home size={20} className={currentView === 'home' ? 'scale-110' : ''} />
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-center min-w-[40px]">Inicio</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-center min-w-[40px]">Inicio</span>
+                    {currentView === 'home' && (
+                        <div className="absolute -bottom-2 w-1 h-1 bg-white rounded-full animate-in zoom-in duration-300"></div>
+                    )}
                 </button>
 
                 {/* QR Floating Button */}
-                <div className="relative -top-6">
+                <div className="relative -top-6 group">
                     <button
                         onClick={handleScan}
-                        className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(59,130,246,0.4)] border-4 border-black hover:scale-110 active:scale-95 transition-all"
+                        className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-[0_0_30px_rgba(59,130,246,0.3)] border-[3px] border-black hover:scale-110 active:scale-95 transition-all duration-300 relative z-20"
                     >
                         <QrCode size={28} />
                     </button>
-                    <div className="absolute top-16 left-1/2 -translate-x-1/2">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-zinc-600">Pagar</span>
+                    <div className="absolute top-16 left-1/2 -translate-x-1/2 transition-opacity group-hover:opacity-100 opacity-60">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500 whitespace-nowrap">Pagar / Scan</span>
                     </div>
                 </div>
 
                 <button
                     onClick={() => handleNavigation('assets')}
-                    className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${currentView === 'assets' ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+                    className={`flex flex-col items-center gap-1.5 relative transition-all duration-500 ${currentView === 'assets' ? 'text-white translate-y-[-2px]' : 'text-zinc-600 hover:text-zinc-400'}`}
                 >
-                    <div className={`p-2 ${currentView === 'assets' ? 'bg-white/5 rounded-xl' : ''}`}>
-                        <TrendingUp size={20} />
+                    <div className={`p-2 transition-all duration-300 ${currentView === 'assets' ? 'bg-white/10 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.05)]' : ''}`}>
+                        <TrendingUp size={20} className={currentView === 'assets' ? 'scale-110' : ''} />
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-center min-w-[40px]">Crypto</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-center min-w-[40px]">Crypto</span>
+                    {currentView === 'assets' && (
+                        <div className="absolute -bottom-2 w-1 h-1 bg-white rounded-full animate-in zoom-in duration-300"></div>
+                    )}
                 </button>
 
             </div>

@@ -11,15 +11,23 @@ export class StarkscanTransactionRepository implements ITransactionRepository {
     };
 
     constructor() {
-        this.provider = new RpcProvider({
-            nodeUrl: 'https://rpc.nethermind.io/mainnet-juno'
-        });
+        // Use environment variable if available, otherwise fallback to a more stable public RPC
+        const nodeUrl = process.env.NEXT_PUBLIC_STARKNET_RPC_URL || 'https://starknet-mainnet.public.blastapi.io';
+        this.provider = new RpcProvider({ nodeUrl });
     }
 
     async getTransactionsByAddress(address: string, limit: number = 20): Promise<Transaction[]> {
         try {
             const allTransfers: Transaction[] = [];
-            const currentBlock = await this.provider.getBlockNumber();
+
+            let currentBlock: number;
+            try {
+                currentBlock = await this.provider.getBlockNumber();
+            } catch (rpcError) {
+                console.warn('RPC Provider failed to get block number, history might be unavailable:', rpcError);
+                return []; // Return empty instead of crashing
+            }
+
             const fromBlock = Math.max(0, currentBlock - 50000); // Check last 50k blocks
 
             const transferEventKey = '0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d461131c66';

@@ -16,7 +16,7 @@ export const RewardPoints: React.FC<RewardPointsProps> = ({ onReferral }) => {
                         <Star size={12} className="text-yellow-500 fill-yellow-500" />
                         <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Reflecter Points</h3>
                     </div>
-                    <div className="text-2xl font-black text-white tracking-tight tabular-nums">1,250</div>
+                    <div className="text-2xl font-black text-white tracking-tight tabular-nums">0</div>
                 </div>
                 <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform">
                     <Gift size={20} />
@@ -25,13 +25,13 @@ export const RewardPoints: React.FC<RewardPointsProps> = ({ onReferral }) => {
 
             <div className="relative z-10">
                 <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden mb-2">
-                    <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-[65%] rounded-full relative">
+                    <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-[0%] rounded-full relative">
                         <div className="absolute top-0 right-0 bottom-0 w-2 bg-white/20 animate-pulse"></div>
                     </div>
                 </div>
                 <div className="flex justify-between text-[8px] font-bold uppercase tracking-widest text-zinc-500">
-                    <span>Nivel 2</span>
-                    <span>Próximo: 250 pt</span>
+                    <span>Nivel 1</span>
+                    <span>Próximo: 500 pt</span>
                 </div>
             </div>
 

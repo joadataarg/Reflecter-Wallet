@@ -53,29 +53,8 @@ export const WalletAuth: React.FC<WalletAuthProps> = ({ initialView = 'login', o
                 }
 
                 // 1. Firebase Sign Up
-                const firebaseUser = await signUp(email, password);
-                if (!firebaseUser) throw new Error('Error al crear el usuario en Firebase.');
-
-                // 2. Get User Token
-                const bearerToken = await firebaseUser.getIdToken();
-                if (!bearerToken) throw new Error('No se pudo obtener el token de autenticación.');
-
-                // 3. User UID
-                const userUid = firebaseUser.uid;
-
-                // 4. Derive Encryption Key
-                const encryptKey = await deriveEncryptKey(userUid);
-
-                // 5. Create Wallet with ChipiPay
-                await createWalletAsync({
-                    params: {
-                        encryptKey,
-                        externalUserId: userUid,
-                    },
-                    bearerToken,
-                });
-
-                console.log('Wallet created and deployed');
+                await signUp(email, password);
+                console.log('Firebase user created, redirecting to dashboard for wallet sync');
             }
         } catch (err: any) {
             console.error('Registration/Wallet Error:', err);

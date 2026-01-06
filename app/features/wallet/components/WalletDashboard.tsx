@@ -173,17 +173,19 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({
                                 </button>
                             </div>
 
-                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group hover:border-emerald-500/30 transition-all duration-500">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                        <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
                                     </div>
                                     <div className="text-left">
-                                        <div className="text-[10px] font-black text-white uppercase tracking-wider">Estado de Red</div>
-                                        <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Starknet Mainnet Operativa</div>
+                                        <div className="text-[10px] font-black text-white uppercase tracking-wider">Red Starknet</div>
+                                        <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Mainnet Centralizada</div>
                                     </div>
                                 </div>
-                                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest px-2 py-1 bg-emerald-500/10 rounded-md border border-emerald-500/20">Online</span>
+                                <div className="flex flex-col items-end gap-1">
+                                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-[0.2em] px-2 py-1 bg-emerald-500/10 rounded-md border border-emerald-500/20">Operational</span>
+                                </div>
                             </div>
 
                             <button
@@ -399,14 +401,6 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({
                             </div>
                         </div>
 
-                        {/* 4. Recent Activity */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between px-2">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Actividad Reciente</h3>
-                                <button className="text-[9px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Ver Todo</button>
-                            </div>
-                            <TransactionHistory walletAddress={wallet.publicKey} network="MAINNET" />
-                        </div>
                     </div>
                 ) : (
                     /* --- CRYPTO VIEW (ActiveTab === 'assets') --- */
