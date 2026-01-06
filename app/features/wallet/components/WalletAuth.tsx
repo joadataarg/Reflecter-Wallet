@@ -157,6 +157,7 @@ export const WalletAuth: React.FC<WalletAuthProps> = ({ initialView = 'login', o
                     )}
 
                     <div className="space-y-4">
+                        {/* 
                         <button
                             onClick={handleGoogleLogin}
                             disabled={isLoading}
@@ -174,6 +175,7 @@ export const WalletAuth: React.FC<WalletAuthProps> = ({ initialView = 'login', o
                                 <span className="bg-black px-4 text-zinc-500 font-bold tracking-widest">O usa tu email</span>
                             </div>
                         </div>
+                        */}
 
                         <form onSubmit={handleAuthAction} className="space-y-4">
                             <div className="space-y-1">
