@@ -23,5 +23,5 @@ export function TokenBalanceDisplay({ token, walletPublicKey }: TokenBalanceDisp
         return <span className="text-xs text-red-600">Err bal</span>;
     }
 
-    return <span className="font-mono font-medium text-blue-600">{balance}</span>;
+    return <span className="font-mono text-inherit tabular-nums">{balance}</span>;
 }

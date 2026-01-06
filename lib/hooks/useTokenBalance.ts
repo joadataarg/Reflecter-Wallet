@@ -2,7 +2,7 @@ import { useGetTokenBalance } from '@chipi-stack/nextjs';
 import { useFirebaseAuth } from './useFirebaseAuth';
 import type { ChainToken } from '@chipi-stack/types';
 import { logger } from '../utils/logger';
-import { TokenBalance } from '../types';
+import { TokenBalance } from '../core/domain/types';
 
 /**
  * Hook to get token balance for a specific wallet and token

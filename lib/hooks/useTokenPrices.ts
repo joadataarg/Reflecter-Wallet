@@ -9,7 +9,7 @@ export interface TokenPrices {
 /**
  * Hook to fetch real-time token prices from CoinGecko
  */
-export function useTokenPrices() {
+export function useTokenPrices(enabled: boolean = true) {
     const [prices, setPrices] = useState<TokenPrices>({
         ETH: 3400, // Fallback prices
         STRK: 0.50,
@@ -19,6 +19,8 @@ export function useTokenPrices() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!enabled) return;
+
         const fetchPrices = async () => {
             try {
                 setIsLoading(true);
@@ -52,7 +54,7 @@ export function useTokenPrices() {
         // Refresh prices every 60 seconds
         const interval = setInterval(fetchPrices, 60000);
         return () => clearInterval(interval);
-    }, []);
+    }, [enabled]);
 
     return { prices, isLoading, error };
 }

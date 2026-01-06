@@ -2,7 +2,7 @@
  * Global Type Definitions for Reflecter Wallet
  */
 
-import { ErrorCode } from './utils/errors';
+import { ErrorCode } from '../../utils/errors';
 
 export enum WalletState {
   DISCONNECTED = 'DISCONNECTED',
@@ -22,6 +22,15 @@ export interface TokenBalance {
   icon: string;
   decimals: number;
 }
+
+export interface WalletSession {
+  publicKey: string;
+  walletId?: string;
+  encryptKey?: string;
+}
+
+export type AuthView = 'login' | 'register';
+export type WalletView = 'home' | 'assets' | 'send' | 'receive' | 'receive-starknet' | 'receive-bridge' | 'settings' | 'transactions' | 'miniapps' | 'card';
 
 export interface UserSession {
   address: string;

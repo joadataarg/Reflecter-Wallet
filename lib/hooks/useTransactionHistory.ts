@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getTokenTransfers, TokenTransfer } from '@/lib/services/starknetTransfers';
 
 interface Transaction {
   hash: string;
@@ -44,23 +43,25 @@ export function useTransactionHistory(
         setLoading(true);
         setError(null);
 
-        // Usar la nueva función de starknet.js
-        const transfers: TokenTransfer[] = await getTokenTransfers(walletAddress);
+        // Architecture Hexagonal: Use Repository
+        const { StarkscanTransactionRepository } = await import('@/lib/infrastructure/repositories/StarkscanTransactionRepository');
+        const repo = new StarkscanTransactionRepository();
+        const data = await repo.getTransactionsByAddress(walletAddress);
 
-        // Convertir al formato esperado por el componente
-        const formattedTransactions: Transaction[] = transfers.map((transfer) => ({
-          hash: transfer.transactionHash,
-          timestamp: transfer.timestamp,
-          type: transfer.type === 'incoming' ? 'TRANSFER_IN' : 'TRANSFER_OUT',
-          token: transfer.token,
-          amount: transfer.amount,
-          from: transfer.type === 'incoming' ? transfer.counterpartAddress : walletAddress,
-          to: transfer.type === 'outgoing' ? transfer.counterpartAddress : walletAddress,
-          status: 'SUCCESS', // Asumimos éxito ya que estamos obteniendo eventos exitosos
-          age: getRelativeTime(transfer.timestamp)
+        // Map domain entities to hook format (they are already compatible)
+        const hookTransactions: Transaction[] = data.map(tx => ({
+          hash: tx.hash,
+          timestamp: tx.timestamp,
+          type: tx.type === 'incoming' ? 'TRANSFER_IN' : 'TRANSFER_OUT',
+          token: tx.token,
+          amount: tx.amount,
+          from: tx.from,
+          to: tx.to,
+          status: tx.status,
+          age: getRelativeTime(tx.timestamp)
         }));
 
-        setTransactions(formattedTransactions);
+        setTransactions(hookTransactions);
       } catch (err) {
         console.error('Error fetching transaction history:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch transactions');

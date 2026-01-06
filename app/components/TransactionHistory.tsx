@@ -21,9 +21,9 @@ interface TransactionHistoryProps {
   network?: 'MAINNET' | 'SEPOLIA';
 }
 
-export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ 
-  walletAddress, 
-  network = 'MAINNET' 
+export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
+  walletAddress,
+  network = 'MAINNET'
 }) => {
   const [expandedTx, setExpandedTx] = useState<string | null>(null);
   const { transactions, loading, error } = useTransactionHistory(walletAddress || '', network);
@@ -67,14 +67,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   }
 
   if (transactions.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="text-zinc-600 mb-2">No transactions found</div>
-          <p className="text-[10px] text-zinc-500">Your token transfers will appear here</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
