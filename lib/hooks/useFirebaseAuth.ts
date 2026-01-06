@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
     signOut as firebaseSignOut,
     onAuthStateChanged,
     User,
@@ -19,6 +21,7 @@ export type UseFirebaseAuthReturn = {
     error: string | null;
     signUp: (email: string, password: string) => Promise<User | null>;
     signIn: (email: string, password: string) => Promise<User | null>;
+    signInWithGoogle: () => Promise<User | null>;
     signOut: () => Promise<void>;
     getToken: () => Promise<string | null>;
 };
@@ -74,6 +77,24 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
         }
     }, []);
 
+    const signInWithGoogle = useCallback(async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            const provider = new GoogleAuthProvider();
+            const userCredential = await signInWithPopup(auth, provider);
+            logger.debug('User signed in with Google', { email: userCredential.user.email });
+            return userCredential.user;
+        } catch (err: any) {
+            const walletError = createWalletError(ErrorCode.AUTH_FAILED, { method: 'google' }, err);
+            setError(walletError.message);
+            logger.error('Google sign in failed', { error: err.message });
+            throw walletError;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const signOut = useCallback(async () => {
         try {
             setError(null);
@@ -102,6 +123,7 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
         error,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
         getToken,
     };
