@@ -46,7 +46,6 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
     const signUp = useCallback(async (email: string, password: string) => {
         try {
             setError(null);
-            setLoading(true);
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             logger.audit('User signed up', { email });
             return userCredential.user;
@@ -63,7 +62,6 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
     const signIn = useCallback(async (email: string, password: string) => {
         try {
             setError(null);
-            setLoading(true);
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             logger.debug('User signed in', { email });
             return userCredential.user;
@@ -80,7 +78,6 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
     const signInWithGoogle = useCallback(async () => {
         try {
             setError(null);
-            setLoading(true);
             const provider = new GoogleAuthProvider();
             const userCredential = await signInWithPopup(auth, provider);
             logger.debug('User signed in with Google', { email: userCredential.user.email });
@@ -98,7 +95,6 @@ export const useFirebaseAuth = (): UseFirebaseAuthReturn => {
     const signOut = useCallback(async () => {
         try {
             setError(null);
-            setLoading(true);
             const uid = auth.currentUser?.uid;
             await firebaseSignOut(auth);
             logger.audit('User signed out', { uid });

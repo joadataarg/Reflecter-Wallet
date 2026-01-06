@@ -15,8 +15,14 @@ export default function AuthPage() {
         }
     }, [user, loading, router]);
 
-    if (loading) {
-        return <div className="h-screen w-screen bg-black"></div>;
+    // Only show global loading during initial initialization
+    // Once initialization is done, even if user is null, we show the Auth UI
+    if (loading && !user) {
+        return (
+            <div className="h-screen w-screen bg-black flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-white/20 border-t-white animate-spin rounded-full"></div>
+            </div>
+        );
     }
 
     return (
