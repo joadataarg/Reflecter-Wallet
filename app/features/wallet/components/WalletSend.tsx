@@ -60,17 +60,7 @@ export const WalletSend: React.FC<WalletSendProps> = ({
         if (!sendAmount || !sendToAddress) return;
 
         try {
-            await sendTransaction({
-                recipientAddress: sendToAddress,
-                amount: sendAmount,
-                tokenAddress: selectedToken, // Note: Hook expects symbol or address? usage in WalletPopup suggests 'ETH', 'STRK' strings are used.
-                // Check useSendAssets implementation basically assumes symbol for now or maps it.
-                // In WalletPopup call: sendAssetsHook.sendTransaction(sendToAddress, sendAmount, selectedToken)
-                // Wait, useSendAssets signature in WalletPopup might be different. 
-                // Let me verify usage in WalletPopup. 
-                // Line 1284: onClick={handleConfirmSend}
-                // handleConfirmSend (line 390 approx? No need to find it).
-            });
+            await sendTransaction(sendToAddress, sendAmount);
 
             // Success
             onNavigate('home');
