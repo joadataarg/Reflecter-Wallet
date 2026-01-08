@@ -69,3 +69,23 @@
 .delay-300 {
     animation-delay: 300ms;
 }
+
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+    transform: rotateY(180deg);
+}
+
+.transition-transform-700 {
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, Info, QrCode } from 'lucide-react';
+import { ChevronLeft, Info, QrCode, AlertCircle } from 'lucide-react';
 import { WalletSession, WalletView } from '@/lib/core/domain/types';
 import { TokenType, TOKEN_DATA } from '@/lib/config/tokens';
 import { TokenIcon } from '@/app/components/ui/TokenIcon';
@@ -58,6 +58,15 @@ export const WalletSend: React.FC<WalletSendProps> = ({
 
     const handleConfirmSend = async () => {
         if (!sendAmount || !sendToAddress) return;
+
+        // Final validation before sending
+        const total = calculateTotalCost(sendAmount);
+        const balance = parseFloat(getBalance(selectedToken) || '0');
+
+        if (total > balance) {
+            setSendAmountError(`Fondo insuficientes. Necesitas ${(total - balance).toFixed(6)} ${selectedToken} más (incluyendo gas).`);
+            return;
+        }
 
         try {
             await sendTransaction(sendToAddress, sendAmount);
@@ -277,6 +286,21 @@ export const WalletSend: React.FC<WalletSendProps> = ({
                         </div>
                     )}
 
+                    {/* Validation Warnings */}
+                    {sendAmount && !sendAmountError && (() => {
+                        const total = calculateTotalCost(sendAmount);
+                        const balance = parseFloat(getBalance(selectedToken) || '0');
+                        if (total > balance) {
+                            return (
+                                <div className="flex items-center gap-2 mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-[10px] text-red-400 font-bold uppercase tracking-widest">
+                                    <AlertCircle size={14} />
+                                    <span>Fondos insuficientes para cubrir el gas</span>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()}
+
                     {sendAmountError && (
                         <div className="flex items-center gap-1 mb-4 text-[10px] text-red-500 font-bold uppercase tracking-widest">
                             <Info size={12} />
@@ -287,13 +311,23 @@ export const WalletSend: React.FC<WalletSendProps> = ({
 
                 <button
                     onClick={() => handleConfirmSend()}
-                    disabled={isSending || !sendAmount || !sendToAddress}
-                    className={`w-full py-5 font-black uppercase tracking-[0.3em] text-[10px] transition-all ${isSending || !sendAmount || !sendToAddress
-                        ? 'bg-zinc-900 text-zinc-600 cursor-not-allowed border border-white/5'
-                        : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
+                    disabled={
+                        isSending ||
+                        !sendAmount ||
+                        !sendToAddress ||
+                        calculateTotalCost(sendAmount) > parseFloat(getBalance(selectedToken) || '0') ||
+                        !!sendAddressError
+                    }
+                    className={`w-full py-5 font-black uppercase tracking-[0.3em] text-[10px] transition-all ${isSending || !sendAmount || !sendToAddress || calculateTotalCost(sendAmount) > parseFloat(getBalance(selectedToken) || '0') || !!sendAddressError
+                            ? 'bg-zinc-900 text-zinc-600 cursor-not-allowed border border-white/5'
+                            : 'bg-white text-black hover:bg-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
                         }`}
                 >
-                    {isSending ? 'Procesando...' : 'Confirmar Transacción'}
+                    {isSending ? 'Procesando...' :
+                        calculateTotalCost(sendAmount) > parseFloat(getBalance(selectedToken) || '0') ? 'Saldo Insuficiente' :
+                            !sendToAddress ? 'Ingrese Dirección' :
+                                !sendAmount ? 'Ingrese Monto' :
+                                    'Confirmar Transacción'}
                 </button>
             </div>
         </div>

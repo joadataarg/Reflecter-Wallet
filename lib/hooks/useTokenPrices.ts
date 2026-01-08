@@ -29,30 +29,34 @@ export function useTokenPrices(enabled: boolean = true) {
                     'https://api.coingecko.com/api/v3/simple/price?ids=ethereum,starknet,usd-coin&vs_currencies=usd'
                 );
 
-                if (!response.ok) throw new Error('Failed to fetch prices');
+                if (!response.ok) {
+                    throw new Error('Price API unreachable');
+                }
 
-                const data = await response.json();
+                let data: any;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    data = {};
+                }
 
                 setPrices({
-                    ETH: data.ethereum?.usd || 3400,
-                    STRK: data.starknet?.usd || 0.50,
-                    USDC: data['usd-coin']?.usd || 1.00
+                    ETH: data?.ethereum?.usd || 3400,
+                    STRK: data?.starknet?.usd || 0.50,
+                    USDC: data?.['usd-coin']?.usd || 1.00
                 });
                 setError(null);
             } catch (err: any) {
-                console.error('Price fetch error:', err.name, err.message);
-                if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-                    console.warn('NetworkError: The price API might be blocked by an adblocker or the network. Using fallback prices.');
-                }
-                setError(err.message);
+                // Silently handle network errors/rate limits
+                setError(null);
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchPrices();
-        // Refresh prices every 60 seconds
-        const interval = setInterval(fetchPrices, 60000);
+        // Refresh prices every 60 minutes
+        const interval = setInterval(fetchPrices, 3600000);
         return () => clearInterval(interval);
     }, [enabled]);
 

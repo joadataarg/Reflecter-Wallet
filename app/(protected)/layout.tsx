@@ -6,6 +6,7 @@ import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import Sidebar from '@/app/components/Sidebar';
 import { WalletNavbar } from '@/app/features/wallet/components/WalletNavbar';
 import { WalletUIProvider } from '@/lib/context/WalletUIContext';
+import { StandaloneWallet } from '@/app/features/wallet/components/StandaloneWallet';
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
     const { user, loading: authLoading, signOut } = useFirebaseAuth();
@@ -46,47 +47,32 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                         <Sidebar onLogout={handleLogout} />
                     </div>
 
-                    {/* Column 2: Experience / Hub (Central Area) */}
-                    <div className="flex-1 overflow-hidden relative flex flex-col">
+                    {/* Column 2: Experience / Hub (Central Area - DESKTOP CONTENT) */}
+                    <div className="flex-1 overflow-hidden relative flex flex-col border-r border-white/5">
                         {/* Abstract Background Element */}
                         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] -mr-64 -mt-64"></div>
                         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-[120px] -ml-64 -mb-64"></div>
 
-                        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative z-10">
-                            <div className="max-w-md space-y-6">
-                                <div className="inline-block p-3 px-6 bg-white/5 border border-white/10 rounded-full">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Reflecter Ecosystem</span>
-                                </div>
-                                <h2 className="text-4xl font-black uppercase tracking-tighter text-white">
-                                    Your Digital <br /> Identity, Unleashed.
-                                </h2>
-                                <p className="text-xs text-zinc-500 uppercase tracking-widest leading-relaxed max-w-xs mx-auto">
-                                    Experience the future of decentralized finance with our multi-chain orchestrated wallet.
-                                </p>
-                            </div>
+                        <div className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
+                            {children}
                         </div>
 
                         {/* Footer Info for Desktop Hub */}
                         <div className="p-8 border-t border-white/5 flex justify-between items-center text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600">
                             <span>Status: Operational</span>
-                            <span>v1.0.4-beta</span>
+                            <span>Reflecter Desktop v1.1.0</span>
                         </div>
                     </div>
 
-                    {/* Column 3: The Wallet (Active View) */}
-                    <div className="w-[420px] flex-shrink-0 bg-black border-l border-white/10 shadow-[0_0_100px_rgba(0,0,0,1)] z-20 flex flex-col overflow-hidden">
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col custom-scrollbar">
-                            {children}
-                        </div>
-                        {/* Global Navbar for the Wallet Section */}
-                        <WalletNavbar />
+                    {/* Column 3: The Wallet (Mobile Version Bridge) */}
+                    <div className="w-[420px] flex-shrink-0 bg-black shadow-[20px_0_100px_rgba(0,0,0,1)] z-20 flex flex-col overflow-hidden">
+                        <StandaloneWallet />
                     </div>
 
                 </div>
 
                 {/* MOBILE LAYOUT (Full screen focus) */}
                 <div className="flex md:hidden w-full h-full flex-col relative overflow-hidden">
-                    {/* Header for Mobile (Optional, but often nice) */}
                     <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
                         {children}
                     </div>
