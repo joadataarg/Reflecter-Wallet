@@ -30,7 +30,7 @@ export interface WalletSession {
 }
 
 export type AuthView = 'login' | 'register';
-export type WalletView = 'home' | 'assets' | 'send' | 'receive' | 'receive-starknet' | 'receive-bridge' | 'settings' | 'transactions' | 'miniapps' | 'card';
+export type WalletView = 'home' | 'assets' | 'send' | 'receive' | 'receive-starknet' | 'receive-bridge' | 'settings' | 'transactions' | 'miniapps' | 'card' | 'feedback';
 
 export interface UserSession {
   address: string;

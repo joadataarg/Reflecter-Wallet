@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useFetchWallet } from '@/lib/hooks/useFetchWallet';
 import { useFirebaseAuth } from '@/lib/hooks/useFirebaseAuth';
 import { useWalletUI } from '@/lib/context/WalletUIContext';
@@ -14,6 +14,7 @@ import { useRewards } from '@/lib/hooks/useRewards';
 
 export default function DashboardPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { wallet, isLoading: walletLoading, error: walletError, refetch } = useFetchWallet();
     const { user, getToken, signOut } = useFirebaseAuth();
     const { createWalletAsync } = useCreateWallet();
